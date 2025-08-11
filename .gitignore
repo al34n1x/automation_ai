@@ -1,0 +1,38 @@
+# 💡 Environment & Secrets
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+*.secret
+*.credentials
+
+# 💻 macOS System Files
+.DS_Store
+
+# 🛠️ IDEs & Editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# 📦 Node / Python (if used)
+node_modules/
+__pycache__/
+*.py[cod]
+*.log
+
+# 📄 OS & Temporary Files
+Thumbs.db
+*.bak
+*.tmp
+*.swp
+*~
+
+# 🚫 Backup Files
+*.orig
+*.old
+
+# 🔐 GitHub-specific
+*.token
+*.config.json
