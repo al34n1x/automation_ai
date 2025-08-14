@@ -40,6 +40,7 @@ Construir un agente que:
 - **Ejemplo de configuración:**
   - Modelo: `gpt-4o-mini` o `gpt-4`.
   - Temperatura: baja (0.2–0.3) para respuestas precisas.
+  - Generar Prompt de sistema adaptado para RAG (Utilizar herramientas como ChatGPT para personalizar el prompt)
 - **Conexión:** Desde el `AI Agent` (como **Chat Model**).
 
 ---
@@ -70,6 +71,7 @@ Construir un agente que:
 - **Conexión:**
   - Entrada **Embedding**: desde `Embeddings OpenAI`.
   - Salida **Vector Store**: hacia `Answer questions with a vector store`.
+  - Pinecone Namespace: el espacio de nombres donde se almacenan los vectores dado por Pinecone.
 
 ---
 
