@@ -326,57 +326,10 @@ curl https://api.openai.com/v1/chat/completions \
 - Keep temperature low for factual tasks  
 - Start small, measure, then scale
 
----
-
-## 12) Minimal Working Example (All Steps Together in n8n)
-
-> Overview of nodes and the fields you’ll set. You can mirror this exactly in the n8n UI.
-
-1) **Trigger Node** (Webhook or Telegram)  
-   - Output field with user question → `query`
-
-2) **HTTP Request — Create Embedding**  
-   - URL: `https://api.openai.com/v1/embeddings`  
-   - Body: `{ "input": "{{ $json.query }}", "model": "text-embedding-3-small" }`  
-   - Map result to `embedding = {{$json.data[0].embedding}}` (via a **Set** node)
-
-3) **HTTP Request — Vector DB Query (Pinecone)**  
-   - URL: `https://YOUR_INDEX-YOUR_PROJECT.svc.YOUR_REGION.pinecone.io/query`  
-   - Body: `{ "vector": {{ $json.embedding }}, "topK": 4, "includeMetadata": true }`  
-   - Expect `matches[].metadata.text`
-
-4) **Set — Build RAG Prompt**  
-```
-You are a helpful assistant for our organization.
-Answer the question using ONLY the context below. If the answer is not in the context, say “I don’t have that information.”
-
-[Context]
-{{ $json.matches.map(m => m.metadata.text).join("\n\n---\n\n") }}
-
-[Question]
-{{ $json.query }}
-```
-
-5) **HTTP Request — LLM Chat**  
-   - URL: `https://api.openai.com/v1/chat/completions`  
-   - Body:
-```json
-{
-  "model": "gpt-4o-mini",
-  "messages": [
-    { "role": "system", "content": "You only answer from the provided context. If unsure, say you don’t know." },
-    { "role": "user", "content": "{{ $json.rag_prompt }}" }
-  ],
-  "temperature": 0.2
-}
-```
-
-6) **Respond to User** (Telegram/Slack/Webhook Response)  
-   - Send `choices[0].message.content`
 
 ---
 
-## 13) Frequently Asked Questions (FAQ)
+## 12) Frequently Asked Questions (FAQ)
 
 **Q: Do I need to fine‑tune the model?**  
 A: Usually no. RAG avoids training costs by retrieving your data at answer time.
@@ -395,7 +348,7 @@ A: How many chunks you retrieve. Try 3–8 and evaluate answer quality.
 
 ---
 
-## 14) Sane Defaults (Copy These)
+## 13) Sane Defaults (Copy These)
 
 - Chunk size: **800 tokens**, overlap **100**  
 - topK: **4**  
@@ -404,7 +357,7 @@ A: How many chunks you retrieve. Try 3–8 and evaluate answer quality.
 
 ---
 
-## 15) Glossary (Very Short)
+## 14) Glossary (Very Short)
 
 - **Embedding:** Turning text into a vector (numbers) that capture meaning.  
 - **Vector:** List of numbers representing text meaning.  
@@ -415,7 +368,7 @@ A: How many chunks you retrieve. Try 3–8 and evaluate answer quality.
 
 ---
 
-## 16) Credits & Next Steps
+## 15) Credits & Next Steps
 
 - Explore Pinecone, Weaviate, Milvus, or Qdrant docs.  
 - Try different embedding models and chunk sizes.  
