@@ -353,7 +353,8 @@ A: How many chunks you retrieve. Try 3–8 and evaluate answer quality.
 - Chunk size: **800 tokens**, overlap **100**  
 - topK: **4**  
 - Temperature: **0.2**  
-- Prompt guardrails: “Answer only from context; otherwise say you don’t know.”
+
+> **NOTE**: Prompt guardrails - “Answer only from context; otherwise say you don’t know.”
 
 ---
 
