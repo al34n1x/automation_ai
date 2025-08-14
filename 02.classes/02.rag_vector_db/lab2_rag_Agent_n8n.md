@@ -71,6 +71,7 @@ Construir un agente que:
 - **Conexión:**
   - Entrada **Embedding**: desde `Embeddings OpenAI`.
   - Salida **Vector Store**: hacia `Answer questions with a vector store`.
+  - Pinecone index: el índice de Pinecone donde se almacenan los vectores.
   - Pinecone Namespace: el espacio de nombres donde se almacenan los vectores dado por Pinecone.
 
 ---
