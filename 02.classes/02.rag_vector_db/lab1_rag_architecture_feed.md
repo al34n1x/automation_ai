@@ -44,7 +44,13 @@ Crea una cuenta en:
     - Pinecone namespace
 6. Agrega el embedding the OpenAI (text-embedding-3-small)
 7. Agrega un nodo Default Data Loader (Default)
-8. Agrega un nodo Recursive Character Text Splitter ald nodo Default Data Loader
+8. Configurar el Default Data Loader con los siguientes parámetros:
+    -Type of data: `Binary`
+    - Mode: `Load all input data`
+    - Data Format: `Automatically detect by mime type`
+    - Text Splitting: `Custom`
+
+9. Agrega un nodo Recursive Character Text Splitter al nodo Default Data Loader
 
 El flujo debería lucir así:
 
