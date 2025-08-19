@@ -55,9 +55,7 @@
       }
     },
     {
-      "parameters": {
-        "jsCode": "try {\n  const input = $input.first().json.output;\n  \n  if (input === undefined || input === null) {\n    return [{\n      json: {\n        valid: false,\n        error: \"El campo 'output' no existe o es null\"\n      }\n    }];\n  }\n  \n  if (typeof input === 'object') {\n    return [{\n      json: {\n        valid: true,\n        message: \"El input ya es un objeto JSON válido\",\n        type: Array.isArray(input) ? 'array' : 'object'\n      }\n    }];\n  }\n  \n  if (typeof input === 'string') {\n    JSON.parse(input);\n    return [{\n      json: {\n        valid: true,\n        message: \"String JSON válido\",\n        type: 'string'\n      }\n    }];\n  }\n  \n  return [{\n    json: {\n      valid: false,\n      error: `Tipo de dato no válido: ${typeof input}`\n    }\n  }];\n  \n} catch (e) {\n  return [{\n    json: {\n      valid: false,\n      error: e.message\n    }\n  }];\n}"
-      },
+      "parameters": {},
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
