@@ -1,0 +1,227 @@
+{
+  "name": "Lab_Debug",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -544,
+        -96
+      ],
+      "id": "c7b8b548-8eeb-4d53-b7de-aea09fb5c72b",
+      "name": "When chat message received",
+      "webhookId": "8666d366-d98d-437c-a298-659e7b9a21dc"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": ""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -304,
+        -80
+      ],
+      "id": "3c773d3a-b500-4a06-bd58-8917b990fde9",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -432,
+        160
+      ],
+      "id": "e28955f7-46eb-42a8-9d70-bc1b57045ab8",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "51oN9QrCM5ZMZ1Zu",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  const input = $input.first().json.output;\n  \n  if (input === undefined || input === null) {\n    return [{\n      json: {\n        valid: false,\n        error: \"El campo 'output' no existe o es null\"\n      }\n    }];\n  }\n  \n  if (typeof input === 'object') {\n    return [{\n      json: {\n        valid: true,\n        message: \"El input ya es un objeto JSON válido\",\n        type: Array.isArray(input) ? 'array' : 'object'\n      }\n    }];\n  }\n  \n  if (typeof input === 'string') {\n    JSON.parse(input);\n    return [{\n      json: {\n        valid: true,\n        message: \"String JSON válido\",\n        type: 'string'\n      }\n    }];\n  }\n  \n  return [{\n    json: {\n      valid: false,\n      error: `Tipo de dato no válido: ${typeof input}`\n    }\n  }];\n  \n} catch (e) {\n  return [{\n    json: {\n      valid: false,\n      error: e.message\n    }\n  }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        48,
+        -80
+      ],
+      "id": "7d6971a9-ca16-4feb-a020-ab820a1e7c6a",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "401f00cc-0161-4011-9e5b-197721f36c16",
+              "leftValue": "={{ $json.valid }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        256,
+        -80
+      ],
+      "id": "3cf5fbcb-159a-41b8-95b5-fb3738c260aa",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "32754c10-516f-40f5-82b8-d2d9543118ad",
+              "name": "output",
+              "value": "={{ $('AI Agent').item.json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        464,
+        -176
+      ],
+      "id": "bb7a3281-1a7b-4304-a3c3-fab16899d704",
+      "name": "Valid JSON Response"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "942bbba3-4698-4793-9fcb-dc5062dfac47",
+              "name": "error",
+              "value": "={{ $json.error }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        464,
+        16
+      ],
+      "id": "71e5d88a-58bd-423e-ac3f-b036d6f985a8",
+      "name": "Error"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Valid JSON Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "2966a9c2-5698-482d-b34d-3c1efa4fe875",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "21c01bb5c5f3f34d6e572cf61183391f18fedb8ad88d29888d48ec9c5f89b544"
+  },
+  "id": "NkvB0pScnT7IkrpL",
+  "tags": []
+}
