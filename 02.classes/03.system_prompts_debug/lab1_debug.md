@@ -29,57 +29,10 @@ Regla: Si no encontrás información, respondé:
 3) Configura tus credenciales de OpenAI
 4) Mejora el flujo para que de como respuesta un JSON
 
-Código nodo **Code**
+Código nodo **Code** *(Se subirá 10 min comenzado los ejercicios)*
  
 ```js
-try {
-  const input = $input.first().json.output;
-  
-  if (input === undefined || input === null) {
-    return [{
-      json: {
-        valid: false,
-        error: "El campo 'output' no existe o es null"
-      }
-    }];
-  }
-  
-  if (typeof input === 'object') {
-    return [{
-      json: {
-        valid: true,
-        message: "El input ya es un objeto JSON válido",
-        type: Array.isArray(input) ? 'array' : 'object'
-      }
-    }];
-  }
-  
-  if (typeof input === 'string') {
-    JSON.parse(input);
-    return [{
-      json: {
-        valid: true,
-        message: "String JSON válido",
-        type: 'string'
-      }
-    }];
-  }
-  
-  return [{
-    json: {
-      valid: false,
-      error: `Tipo de dato no válido: ${typeof input}`
-    }
-  }];
-  
-} catch (e) {
-  return [{
-    json: {
-      valid: false,
-      error: e.message
-    }
-  }];
-}
+
 ```
 
 ---
