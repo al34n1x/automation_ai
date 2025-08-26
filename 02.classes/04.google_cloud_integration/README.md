@@ -129,3 +129,5 @@ Al finalizar la clase, los participantes podrán:
 ✅ Aplicar el patrón Trigger → IA → Almacenamiento → Comunicación.  
 
 ---
+
+[⬅ Back to Course Overview](../../README.md)

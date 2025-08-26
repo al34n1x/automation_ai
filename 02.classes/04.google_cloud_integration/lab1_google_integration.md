@@ -24,3 +24,5 @@ Estado detectado: Negativo.
 Nuestro equipo se pondrá en contacto contigo pronto.
 ```
 
+---
+[⬅ Back to Course Overview](../../README.md)
