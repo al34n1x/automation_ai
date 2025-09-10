@@ -43,20 +43,8 @@ nvm use --lts
    - Download the macOS version (.dmg file)
    - Open the .dmg and drag Claude to your Applications folder
 
-## 3. Set Up MCP Configuration
 
-1. **Create Configuration Directory**:
-   ```bash
-   mkdir -p ~/Library/Application\ Support/Claude/
-   cd ~/Library/Application\ Support/Claude/
-   ```
-
-2. **Create Configuration File**:
-   ```bash
-   touch claude_desktop_config.json
-   ```
-
-3. **Edit the Configuration**:
+2. Open Claude, Settings, Developer, and **Edit the Configuration**:
   
 ```json
    {
@@ -74,68 +62,15 @@ nvm use --lts
 }
 ```
 
-## 4. Create MCP Server Directory Structure
 
-```bash
-# Create a dedicated directory for MCP servers
-mkdir -p ~/mcp-servers/example
-cd ~/mcp-servers/example
-
-# Initialize Node.js project
-npm init -y
-```
-
-## 5. Install MCP SDK and Dependencies
-
-```bash
-# Install MCP SDK
-npm install @modelcontextprotocol/sdk
-
-# Install development dependencies
-npm install --save-dev typescript @types/node ts-node
-
-# Install additional useful packages
-npm install dotenv
-```
-
-## 6. Create Package.json Scripts
-
-Edit your `package.json` to add useful scripts:
-```json
-{
-  "name": "mcp-example-server",
-  "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js",
-    "build": "tsc",
-    "test": "node test.js"
-  },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^latest"
-  }
-}
-```
-
-## 7. Set Up Environment Variables (Optional)
-
-Create a `.env` file:
-```bash
-NODE_ENV=development
-MCP_SERVER_NAME=example-server
-LOG_LEVEL=info
-```
-
-## 8. Test Your Setup
-
+## 3. Test Your Setup
 
 1. **Test with Claude Desktop**:
    - Launch Claude Desktop
    - Check that it connects to your MCP server
    - Look for any connection logs
 
-## 9. Debugging and Logs
+## 4. Debugging and Logs
 
 1. **Check Claude Desktop logs**:
    ```bash
@@ -148,7 +83,7 @@ LOG_LEVEL=info
    console.error('Tool called:', request.params.name);
    ```
 
-## 10. macOS-Specific Considerations
+## 5. macOS-Specific Considerations
 
 1. **Permissions**: You may need to grant Claude Desktop permissions in System Preferences > Security & Privacy
 
@@ -161,7 +96,7 @@ LOG_LEVEL=info
 3. **Firewall**: Check macOS firewall settings if you have connection issues
 
 
-## 11 . Troubleshooting Common Issues
+## 6 . Troubleshooting Common Issues
 
 - **Permission denied**: Use `chmod +x` on your server file
 - **Module not found**: Check your import paths and node_modules
