@@ -1,5 +1,3 @@
-I'll guide you through setting up Node.js on macOS to work with Claude Desktop and MCP clients. Here are the step-by-step instructions:
-
 ## 1. Install Node.js on macOS
 
 ### Option A: Using Homebrew (Recommended)

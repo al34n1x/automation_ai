@@ -1,5 +1,3 @@
-I'll help you set up Node.js on Windows to work with Claude Desktop and MCP (Model Context Protocol) clients. Here are the step-by-step instructions:
-
 ## 1. Install Node.js
 
 1. **Download Node.js**:
