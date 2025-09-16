@@ -1,0 +1,138 @@
+{
+  "name": "MCP Server_Demo",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "mcp_server"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 2,
+      "position": [
+        -336,
+        -224
+      ],
+      "id": "0050cf85-52be-41ad-9a29-074752607acf",
+      "name": "MCP Server Trigger",
+      "webhookId": "3bf0bb22-8357-4498-9e9b-ab499d70a26b"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        -496,
+        0
+      ],
+      "id": "1ed2a2a8-594c-4ad8-84e7-41ed2fc0b4aa",
+      "name": "Enviar correo",
+      "webhookId": "f243c41c-39bc-4945-a492-d3643abc321e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "pY0BOOPxfocG7hHz",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}",
+        "simple": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Simplify', ``, 'boolean') }}",
+        "filters": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        -320,
+        0
+      ],
+      "id": "19455842-eba6-4f3c-9083-1b5bb7fa1dc2",
+      "name": "Buscar Correo",
+      "webhookId": "39bd3fe4-12cd-4a9d-9866-e94d5f68b9d1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "pY0BOOPxfocG7hHz",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message_ID', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        -160,
+        0
+      ],
+      "id": "a8259ad5-81b3-4d31-aa61-181a0e616fda",
+      "name": "Responder Mensajes",
+      "webhookId": "d6e64059-348f-4801-8300-0a4cd6f748ed",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "pY0BOOPxfocG7hHz",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Enviar correo": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Correo": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responder Mensajes": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3e41150e-34f7-4d01-9a96-1176d5369398",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "21c01bb5c5f3f34d6e572cf61183391f18fedb8ad88d29888d48ec9c5f89b544"
+  },
+  "id": "5wBgXm2JAmLW1Ovv",
+  "tags": []
+}

@@ -1,0 +1,147 @@
+{
+  "name": "MCP Client",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -128,
+        -48
+      ],
+      "id": "fdc66f35-9d50-43a2-9dca-8a2ac798ffea",
+      "name": "When chat message received",
+      "webhookId": "188e7756-dd70-4b4c-a1e4-a2ac3be631d3"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=You are an AI Agent in n8n that consumes a single MCP Client.  \nThis MCP Client provides the following tools:  \n- Gmail Send  \n- Gmail Reply  \n- Gmail Get  \n- SerpAPI  \n- CRM  \n- Pinecone Vector Store (Senpai Academy courses knowledge base)\n\n## Rules of Behavior\n1. Always use the MCP Client for all actions. Do not act outside of it.  \n2. Only the listed tools are available. Never invent or assume others.  \n3. If the user asks about **Senpai Academy courses** (contents, duration, requirements, benefits, etc.), query the Pinecone Vector Store as the **only source of truth**.  \n4. For Gmail, SerpAPI, and CRM tasks: use the original language of the input; do not translate messages, queries, or field values.  \n5. Always provide the final answer to the user in **plain natural Spanish text**, clear and conversational.  \n\n## Response Style\n- Be concise, helpful, and friendly.  \n- Confirm actions when successful (e.g., “✅ El correo fue enviado correctamente”).  \n- Provide informative, accurate answers when consulting Pinecone.  \n- Clearly explain errors if an action cannot be completed.  \n\n## Examples\nUser: \"¿Qué cursos de ciencia de datos tiene Senpai Academy?\"  \n→ You call MCP Client (Pinecone Vector Store).  \n← Response in chat:  \n\"📚 Senpai Academy ofrece varios cursos de Ciencia de Datos, incluyendo introducción a Python, análisis exploratorio de datos y machine learning aplicado. Todos incluyen proyectos prácticos y acompañamiento de tutores.\"  \n\nUser: \"Enviá un correo a Pedro con el asunto 'Recordatorio' y el mensaje 'La reunión es mañana'.\"  \n→ You call MCP Client (Gmail Send).  \n← Response in chat:  \n\"📧 El correo a Pedro con el asunto 'Recordatorio' fue enviado correctamente.\"  \n\nIf request cannot be mapped:  \n\"⚠️ Lo siento, no puedo realizar esa acción porque no está disponible en las herramientas del MCP Client.\"  \n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        96,
+        -48
+      ],
+      "id": "2a765e26-f37f-451f-8c8d-ddaa4f2770ec",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -48,
+        192
+      ],
+      "id": "b07dc4cc-dca2-4653-beb1-074a1dd00cbd",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "51oN9QrCM5ZMZ1Zu",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "endpointUrl": "https://geekbydefault.co/mcp/agent",
+        "authentication": "bearerAuth"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.1,
+      "position": [
+        384,
+        176
+      ],
+      "id": "82461343-916c-4efb-8d12-98840aec06a5",
+      "name": "MCP Client",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "cQgWzVkJFm4Pmqne",
+          "name": "MCP Server Bearer"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        64,
+        192
+      ],
+      "id": "f6bda154-c043-47bd-9051-3ffa079b794d",
+      "name": "Simple Memory"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Client": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3c973ab9-bbb0-403b-803f-0632f07f164e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "21c01bb5c5f3f34d6e572cf61183391f18fedb8ad88d29888d48ec9c5f89b544"
+  },
+  "id": "x9ttp9I2qkhubgHy",
+  "tags": []
+}

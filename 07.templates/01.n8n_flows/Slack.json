@@ -1,0 +1,332 @@
+{
+  "name": "Slack",
+  "nodes": [
+    {
+      "parameters": {
+        "trigger": [
+          "app_mention"
+        ],
+        "watchWorkspace": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.slackTrigger",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        -64
+      ],
+      "id": "036ba314-08a0-47fc-a12d-a7db344a1805",
+      "name": "Slack Trigger",
+      "webhookId": "793b5f69-bae1-4176-b20f-9b724f8b22cd",
+      "credentials": {
+        "slackApi": {
+          "id": "CSh2iDpGoVsmACNm",
+          "name": "Slack"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "options": {
+          "systemMessage": "=Eres **SenpaiBot**, un asistente amigable y experto en los cursos de SENPAI.  \nTu misión es responder de manera clara, breve y cordial todas las preguntas que hagan los usuarios.  \n\n# Fuente de información\n- Tu única fuente de verdad es la **base de vectores** conectada al flujo.  \n- Usa únicamente los fragmentos recuperados de la base de vectores.  \n- Si el input del usuario no tiene respuesta en la base, responde con un mensaje sincero y amistoso indicando que no tienes esa información.\n\n# Estilo de respuesta\n- Amigable, cercano y motivador.  \n- Siempre en español.  \n- Responde en formato de texto plano (sin JSON ni estructuras técnicas).  \n- Usa emojis moderadamente para hacerlo más cálido y atractivo.  \n\n# Ejemplos de comportamiento\n- Si la pregunta está cubierta por la base de vectores:  \n  👉 *“El curso de Data Science dura 12 semanas 🧑‍💻 y tiene modalidad online en vivo.”*  \n- Si la información no está en la base:  \n  👉 *“Lo siento 🙏, no tengo información sobre ese tema en este momento. ¿Querés que te comparta los cursos disponibles?”*  \n\n# Input\nEl texto del usuario viene en:  \n`{{ $json.text }}`\n\n# Instrucciones clave\n- No inventes información.  \n- No uses fuentes externas.  \n- Sé siempre claro, positivo y útil.  "
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -128,
+        -64
+      ],
+      "id": "a87e65bb-b2c8-4ece-8206-fb876b14f450",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -240,
+        176
+      ],
+      "id": "9cdad160-76ba-4312-ab90-ab0c6b0cfc20",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "51oN9QrCM5ZMZ1Zu",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $('Slack Trigger').item.json.channel }}",
+          "mode": "id"
+        },
+        "text": "={{ $json.output }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        288,
+        -64
+      ],
+      "id": "8eb58950-7a2a-4cf9-aa78-77a0d3a860c8",
+      "name": "Send a message",
+      "webhookId": "e7601292-277d-4d1d-b298-2dc63de2674c",
+      "credentials": {
+        "slackApi": {
+          "id": "CSh2iDpGoVsmACNm",
+          "name": "Slack"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Slack Trigger').item.json.user }}",
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -80,
+        192
+      ],
+      "id": "d7568bae-4ea1-4498-9c9c-c0fd87367b1a",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1.1,
+      "position": [
+        304,
+        256
+      ],
+      "id": "d229db77-34d5-4101-a27f-57e5575316cc",
+      "name": "Answer questions with a vector store"
+    },
+    {
+      "parameters": {
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "infocursos",
+          "mode": "list",
+          "cachedResultName": "infocursos"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        144,
+        416
+      ],
+      "id": "2c261e11-eef3-4bf6-8846-c61ab0308f9e",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "jxCBXWgQRO6Rm57I",
+          "name": "PineconeApi - SENPAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        624
+      ],
+      "id": "593742f6-ef86-4941-9a7f-1919f2f95293",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "51oN9QrCM5ZMZ1Zu",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        464,
+        432
+      ],
+      "id": "242206b0-77a6-4c9a-a6a7-c6670d3c5703",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "51oN9QrCM5ZMZ1Zu",
+          "name": "OpenAi account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Slack Trigger": [
+      {
+        "json": {
+          "user": "U08JLF7Q37B",
+          "type": "app_mention",
+          "ts": "1756384688.716909",
+          "client_msg_id": "0949654b-c65d-461f-8a34-285da4b63f42",
+          "text": "Hola <@U09C890Q7T7>",
+          "team": "T08JLF7PYE5",
+          "blocks": [
+            {
+              "type": "rich_text",
+              "block_id": "lIfOC",
+              "elements": [
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Hola "
+                    },
+                    {
+                      "type": "user",
+                      "user_id": "U09C890Q7T7"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "channel": "C08JLF85141",
+          "event_ts": "1756384688.716909"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Slack Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer questions with a vector store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1f01646d-7b38-44fa-92f8-ddbe85af559b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "21c01bb5c5f3f34d6e572cf61183391f18fedb8ad88d29888d48ec9c5f89b544"
+  },
+  "id": "eBkDDhMzCRUCDQtj",
+  "tags": []
+}

@@ -1,0 +1,503 @@
+{
+  "name": "Supervisor Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "options": {
+          "systemMessage": "=ROLE You are an AI Agent called Max.\nYour job is to orchestrate the acitivities between different agents and then formulate a friendly response back to the user.\nYou should never write emails, create content, create summaries yourself. Your job is to call agents and tools in the correct sequence.\n\nThink carefully about the sequence of events. Some tools might require you to first call another tool in order to pass it the correct information.\n\nIf you get a question about SENPAI academy, review the knowdge database and pull everything from there. \nAlso use that information as part of a payload to send to another workflow such as the email tool.\nEnsure you send the email information as part of the payload or review the contacts tool to check whether the contact is listed there.\n\nIf you get asked by a customer information, call the CRM tool which contains all our customer base information. Send the entire query over to the CRM which contain an agent that can identify the user intention.\n\n\nADDITIONAL INFORMATION\n- You are talking to Leon.\n- The current date and time is {{ $now.toString() }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        224,
+        0
+      ],
+      "id": "b2c2b724-0173-4f55-8a06-ff7c561e484b",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.user }}",
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -112,
+        256
+      ],
+      "id": "c69b363a-0af4-4149-88e8-eab9eef0ce72",
+      "name": "Window Buffer Memory"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolSerpApi",
+      "typeVersion": 1,
+      "position": [
+        64,
+        352
+      ],
+      "id": "c0fdc3da-6d61-4165-9409-87dedd237eda",
+      "name": "GoogleSearch",
+      "credentials": {
+        "serpApi": {
+          "id": "IqTBRTOc5DSoAc48",
+          "name": "SerpAPI account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolCalculator",
+      "typeVersion": 1,
+      "position": [
+        160,
+        352
+      ],
+      "id": "26f335bd-32c3-4f76-91b9-88c8d0dd36c6",
+      "name": "Calculator"
+    },
+    {
+      "parameters": {
+        "name": "EmailAgent",
+        "description": "Use this tool for any email related activities.",
+        "workflowId": {
+          "__rl": true,
+          "value": "5vTHiJKeskcIQxZm",
+          "mode": "list",
+          "cachedResultName": "SW_Email_Agent"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [
+        272,
+        352
+      ],
+      "id": "a5661189-3673-43ae-aacb-cfe0b5702746",
+      "name": "Email"
+    },
+    {
+      "parameters": {
+        "name": "ContactsAgent",
+        "description": "Use this agent for all contacts related actions.",
+        "workflowId": {
+          "__rl": true,
+          "value": "iCyDh3r9P4dhsnQx",
+          "mode": "list",
+          "cachedResultName": "SW_Contacts"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [
+        368,
+        352
+      ],
+      "id": "828e6a79-9cf0-4d47-bb8a-d6708644a58a",
+      "name": "Contacts"
+    },
+    {
+      "parameters": {
+        "name": "CalendarAgent",
+        "description": "Use this tool for all calendar related actions.",
+        "workflowId": {
+          "__rl": true,
+          "value": "pMy9jMCby4LCdrI3",
+          "mode": "list",
+          "cachedResultName": "SW_Calendar"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [
+        464,
+        352
+      ],
+      "id": "581385de-f05d-49af-988e-2e857e67037f",
+      "name": "Calendar"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        912,
+        528
+      ],
+      "id": "f88e624a-e05d-4035-9fc3-5e3401e68166",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "51oN9QrCM5ZMZ1Zu",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "KnowledgeBase",
+        "toolDescription": "Use this tool for any queries related to our custom knowledge base.",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "infocursos",
+          "mode": "list",
+          "cachedResultName": "infocursos"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1,
+      "position": [
+        880,
+        352
+      ],
+      "id": "95621639-5765-4900-ab39-106a2eae25c8",
+      "name": "KnowledgeBase",
+      "credentials": {
+        "pineconeApi": {
+          "id": "jxCBXWgQRO6Rm57I",
+          "name": "PineconeApi - SENPAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -256,
+        240
+      ],
+      "id": "57ce822d-a8bd-4d2c-b540-138e756c68e5",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "51oN9QrCM5ZMZ1Zu",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "ContentCreator",
+        "description": "Use this tool for any actions that require creative writing.",
+        "workflowId": {
+          "__rl": true,
+          "value": "zwTkRJJdotjFFTnn",
+          "mode": "list",
+          "cachedResultName": "SW_Content_Creation"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [
+        560,
+        352
+      ],
+      "id": "38923136-5c7a-43b3-9d22-dca6023db2da",
+      "name": "Writer"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "e8KCDigoEDkh4WRo",
+          "mode": "list",
+          "cachedResultName": "SW_SQL Dialog"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('query', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "query"
+          ],
+          "schema": [
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        688,
+        352
+      ],
+      "id": "3a91a3f3-c483-4315-93a4-8971704ac574",
+      "name": "CRM"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C08JLF85141",
+          "mode": "list",
+          "cachedResultName": "all-gato"
+        },
+        "text": "={{ $json.output }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        0
+      ],
+      "id": "645b5f1d-a8c3-4037-a600-93b395f6d6eb",
+      "name": "Send a message",
+      "webhookId": "ab378575-b81d-47e3-b2b9-c2f50384602f",
+      "credentials": {
+        "slackApi": {
+          "id": "dlqfAa3Ck6rlBBj1",
+          "name": "Slack Agent"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "trigger": [
+          "any_event"
+        ],
+        "watchWorkspace": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.slackTrigger",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        0
+      ],
+      "id": "f7f3df4e-f695-4466-b096-d5518350c1d3",
+      "name": "Slack Trigger",
+      "webhookId": "35cb8a36-57b9-47d3-a8ed-6438dfba4a11",
+      "credentials": {
+        "slackApi": {
+          "id": "dlqfAa3Ck6rlBBj1",
+          "name": "Slack Agent"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GoogleSearch": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculator": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contacts": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "KnowledgeBase",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "KnowledgeBase": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Writer": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ca4a180b-c6dd-401a-a789-705251765838",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "21c01bb5c5f3f34d6e572cf61183391f18fedb8ad88d29888d48ec9c5f89b544"
+  },
+  "id": "TtBTVsw6zL2FzPyj",
+  "tags": []
+}

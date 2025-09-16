@@ -1,0 +1,333 @@
+{
+  "name": "G_Integration_Mail",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1120,
+        -144
+      ],
+      "id": "91c34d82-04fa-4631-9fc1-c20bb1b89ea9",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "pY0BOOPxfocG7hHz",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "messageId": "={{ $json.id }}"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -864,
+        -144
+      ],
+      "id": "1f9f7efa-15b3-4a16-9a59-e44d6c98b4d1",
+      "name": "Get a message",
+      "webhookId": "5ff1b8c7-b2ed-41fe-868e-2cb84606660b",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "pY0BOOPxfocG7hHz",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Review the following email {{ $json.snippet }} and give me the sentiment, return the {{ $('Gmail Trigger').item.json.From }}, and the subject {{ $('Gmail Trigger').item.json.Subject }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an email summarization and response agent working with Gmail messages.\n\nTOOLS\nYou have a tool named gmail.send_email that sends an email reply.\n- Call signature (JSON args): {\"to\": \"<recipient email>\", \"subject\": \"<subject>\", \"body\": \"<plain text body>\", \"thread_id\": \"<optional thread id>\", \"message_id\": \"<optional message id>\"}\n- Always reply in the same language as the original email.\n- If replying in a thread, keep the subject prefixed with \"Re:\" (add it if missing).\n\nGOAL\nProcess a single Gmail message, SEND a reply using the gmail.send_email tool, and then return ONE SINGLE LINE of strict JSON with exactly these keys:\n{\"sender\":\"\",\"subject\":\"\",\"summary\":\"\",\"sentiment\":\"\",\"reply\":\"\"}\n\nREQUIREMENTS\n1) \"sender\": sender’s email address. If unavailable, use the display name; else \"unknown\".\n2) \"subject\": the email subject. If missing, use \"No subject\".\n3) \"summary\": concise 1–2 sentence summary of ONLY the newest message (ignore quoted history).\n4) \"sentiment\": one of \"positive\", \"neutral\", \"negative\".\n5) \"reply\": a short, polite, professional reply (≤4 sentences), action-oriented, same language as the email.\n\nCRITICAL EXECUTION ORDER\n1) Extract fields (sender, subject, newest message text).\n2) Compose the reply text.\n3) CALL gmail.send_email exactly once with:\n   - \"to\": the sender email if available; otherwise leave blank and proceed.\n   - \"subject\": the original subject, ensuring it begins with \"Re:\".\n   - \"body\": the reply text (plain text, no markdown).\n   - Include \"thread_id\" or \"message_id\" if provided in the input payload.\n4) After the tool call, output ONLY the JSON object on a single line with the final values:\n   {\"sender\":\"...\",\"subject\":\"...\",\"summary\":\"...\",\"sentiment\":\"...\",\"reply\":\"...\"}\n\nCONTENT RULES\n- Summarize only the newest message; ignore signatures, disclaimers, unsubscribe text, trackers, and quoted history.\n- If the body is empty, summarize from the subject; if both are empty, set summary to \"No content\".\n- Preserve the original language; do not translate.\n- Do not invent facts or links.\n\nOUTPUT FORMAT\n- Final response must be ONE SINGLE LINE of valid JSON (no newlines, no markdown, no code fences, no extra text).\n- Use double quotes and standard JSON; no trailing commas.\n- The object must contain exactly: sender, subject, summary, sentiment, reply.\n\nVALIDATION\n- If any field is missing in the input, do your best with what is available.\n- You MUST call gmail.send_email once per message before producing the JSON.\n- Any response that is not a single-line JSON object is invalid.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -640,
+        -144
+      ],
+      "id": "2cfc78a6-3445-4e5a-9e65-2f0c5e318285",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -880,
+        96
+      ],
+      "id": "72cb475e-f954-4a41-bd68-2f3c3043bb35",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "51oN9QrCM5ZMZ1Zu",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"sender\":\"\",\n  \"subject\":\"\",\n  \"summary\":\"\",\n  \"sentiment\":\"\"\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -656,
+        112
+      ],
+      "id": "63de89d5-00de-4f42-aab3-c72aed4ce551",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -672,
+        256
+      ],
+      "id": "3201a1fb-de57-4e4d-992e-61fcef49842c",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "51oN9QrCM5ZMZ1Zu",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1nr-XmtKVcN3M33bCOkd-H5V-seld_Gp6AhICNJz707M",
+          "mode": "list",
+          "cachedResultName": "Email",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nr-XmtKVcN3M33bCOkd-H5V-seld_Gp6AhICNJz707M/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nr-XmtKVcN3M33bCOkd-H5V-seld_Gp6AhICNJz707M/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Sender": "={{ $json.output.sender }}",
+            "Subject": "={{ $json.output.subject }}",
+            "Summary": "={{ $json.output.summary }}",
+            "Sentiment": "={{ $json.output.sentiment }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Sender",
+              "displayName": "Sender",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Subject",
+              "displayName": "Subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Sentiment",
+              "displayName": "Sentiment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -288,
+        -144
+      ],
+      "id": "269db951-5b12-4c10-a9de-dc0b873afaac",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "iWKoKA5bMxBR72kk",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('Get a message').item.json.id }}",
+        "emailType": "text",
+        "message": "=Hi  {{ $('Get a message').item.json.From }}, \nWe have received your message. ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        -288,
+        112
+      ],
+      "id": "010ac253-c6e8-4d4b-848a-a888e66a9736",
+      "name": "gmail.send_email",
+      "webhookId": "c84b9f9e-7021-4b48-81f2-026b64e05d2e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "pY0BOOPxfocG7hHz",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a message": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gmail.send_email": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ae071fb3-14ab-423d-bca6-2515d7864087",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "21c01bb5c5f3f34d6e572cf61183391f18fedb8ad88d29888d48ec9c5f89b544"
+  },
+  "id": "9biOqIkONHNCyK1P",
+  "tags": []
+}
