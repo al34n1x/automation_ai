@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Costos LLM y n8n</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .section {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .section:hover {
+            border-color: #4facfe;
+            box-shadow: 0 10px 25px rgba(79, 172, 254, 0.1);
+        }
+
+        .section h2 {
+            color: #1a202c;
+            margin-bottom: 25px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #4facfe;
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        select, input {
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .model-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+            gap: 15px;
+            align-items: end;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .model-row:hover {
+            border-color: #4facfe;
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.1);
+        }
+
+        .cost-display {
+            font-weight: bold;
+            font-size: 16px;
+            color: #2d3748;
+            text-align: center;
+            padding: 10px;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+
+        .summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+        }
+
+        .summary h2 {
+            color: white;
+            border-bottom: 3px solid white;
+            margin-bottom: 25px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .summary-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .summary-item h3 {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .summary-item .value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(79, 172, 254, 0.3);
+        }
+
+        .export-section {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e2e8f0;
+        }
+
+        .toggle-btn {
+            background: #48bb78;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .toggle-btn.disabled {
+            background: #a0aec0;
+        }
+
+        @media (max-width: 768px) {
+            .model-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Calculadora de Costos LLM y n8n</h1>
+            <p>Herramienta interactiva para estimar costos de implementación</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Sección LLM -->
+            <div class="section">
+                <h2>📊 Configuración de Modelos LLM</h2>
+                <div id="llmModels">
+                    <!-- Los modelos se generarán dinámicamente -->
+                </div>
+                <button class="btn" onclick="addModel()">+ Agregar Modelo</button>
+            </div>
+
+            <!-- Sección n8n -->
+            <div class="section">
+                <h2>⚙️ Configuración n8n</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Tipo de Implementación</label>
+                        <select id="n8nType" onchange="updateN8nCosts()">
+                            <option value="">Seleccionar...</option>
+                            <option value="cloud-starter">n8n Cloud - Starter ($24/mes)</option>
+                            <option value="cloud-pro">n8n Cloud - Pro ($240/mes)</option>
+                            <option value="cloud-enterprise">n8n Cloud - Enterprise (desde $500/mes)</option>
+                            <option value="self-basic">Self-hosted - Básico</option>
+                            <option value="self-production">Self-hosted - Producción</option>
+                            <option value="self-enterprise">Self-hosted - Enterprise</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="executionsGroup" style="display:none;">
+                        <label>Ejecuciones Mensuales</label>
+                        <input type="number" id="executions" placeholder="ej: 10000" onchange="updateN8nCosts()">
+                    </div>
+
+                    <div class="form-group" id="infraGroup" style="display:none;">
+                        <label>Proveedor de Infraestructura</label>
+                        <select id="infraProvider" onchange="updateN8nCosts()">
+                            <option value="">Seleccionar...</option>
+                            <option value="aws">Amazon Web Services</option>
+                            <option value="gcp">Google Cloud Platform</option>
+                            <option value="azure">Microsoft Azure</option>
+                            <option value="digitalocean">DigitalOcean</option>
+                            <option value="linode">Linode</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="cost-display" id="n8nCost">Costo n8n: $0/mes</div>
+                    <div class="cost-display" id="infraCost">Costo Infraestructura: $0/mes</div>
+                    <div class="cost-display" id="maintenanceCost">Mantenimiento: $0/mes</div>
+                </div>
+            </div>
+
+            <!-- Sección Personal -->
+            <div class="section">
+                <h2>👥 Recursos Humanos</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>DevOps Engineer (Horas/mes)</label>
+                        <input type="number" id="devopsHours" value="0" onchange="updatePersonalCosts()">
+                    </div>
+                    <div class="form-group">
+                        <label>Tarifa DevOps ($/hora)</label>
+                        <input type="number" id="devopsRate" value="60" onchange="updatePersonalCosts()">
+                    </div>
+                    <div class="form-group">
+                        <label>Developer (Horas/mes)</label>
+                        <input type="number" id="devHours" value="0" onchange="updatePersonalCosts()">
+                    </div>
+                    <div class="form-group">
+                        <label>Tarifa Developer ($/hora)</label>
+                        <input type="number" id="devRate" value="50" onchange="updatePersonalCosts()">
+                    </div>
+                </div>
+                <div class="cost-display" id="personalCost">Costo Personal: $0/mes</div>
+            </div>
+
+            <!-- Resumen -->
+            <div class="summary">
+                <h2>💰 Resumen de Costos</h2>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <h3>LLM Mensual</h3>
+                        <div class="value" id="totalLLM">$0</div>
+                    </div>
+                    <div class="summary-item">
+                        <h3>n8n + Infra Mensual</h3>
+                        <div class="value" id="totalInfra">$0</div>
+                    </div>
+                    <div class="summary-item">
+                        <h3>Personal Mensual</h3>
+                        <div class="value" id="totalPersonal">$0</div>
+                    </div>
+                    <div class="summary-item">
+                        <h3>Total Mensual</h3>
+                        <div class="value" id="totalMonthly">$0</div>
+                    </div>
+                    <div class="summary-item">
+                        <h3>Total Anual</h3>
+                        <div class="value" id="totalYearly">$0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="export-section">
+                <button class="btn" onclick="exportToCSV()">📊 Exportar a CSV</button>
+                <button class="btn" onclick="printCalculation()">🖨️ Imprimir Reporte</button>
+                <button class="btn" onclick="resetCalculator()">🔄 Resetear</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datos de precios LLM
+        const llmPrices = {
+            'gpt-5': { input: 1.25, output: 10.00, name: 'GPT-5' },
+            'gpt-4o': { input: 2.50, output: 10.00, name: 'GPT-4o' },
+            'gpt-4o-mini': { input: 0.15, output: 0.60, name: 'GPT-4o Mini' },
+            'gpt-3.5-turbo': { input: 0.50, output: 1.50, name: 'GPT-3.5 Turbo' },
+            'claude-4.1-opus': { input: 15, output: 75, name: 'Claude-4.1-opus' },
+            'claude-4-sonnet': { input: 3.00, output: 15.00, name: 'Claude 4 Sonnet < 200K tokens' },
+            'claude-4-sonnet_200': { input: 6.00, output: 22.50, name: 'Claude 4 Sonnet > 200K tokens' },
+            'claude-3.5-haiku': { input: 0.80, output: 4, name: 'Claude 3.5 Haiku' },
+            'claude-3-opus': { input: 15.00, output: 75.00, name: 'Claude 3 Opus' },
+            'gemini-2.5-pro': { input: 1.25, output: 10.00, name: 'Gemini 1.5 Pro < 200K tokens' },
+            'gemini-2.5-pro_200': { input: 2.50, output: 15.00, name: 'Gemini 1.5 Pro > 200K tokens' },
+            'gemini-2.5-flash': { input: 0.30, output: 2.50, name: 'Gemini 1.5 Flash' },
+            'mistral-small': { input: 0.20, output: 0.60, name: 'Mistral Small' },
+            'mistral-large': { input: 2.00, output: 6.00, name: 'Mistral Large' },
+            'command-r': { input: 0.15, output: 0.60, name: 'Cohere Command R' },
+            'command-r-plus': { input: 3.00, output: 15.00, name: 'Cohere Command R+' }
+        };
+
+        // Precios de infraestructura
+        const infraPrices = {
+            aws: { basic: 99, production: 130, enterprise: 340 },
+            gcp: { basic: 81, production: 105, enterprise: 280 },
+            azure: { basic: 92, production: 120, enterprise: 310 },
+            digitalocean: { basic: 54, production: 70, enterprise: 180 },
+            linode: { basic: 39, production: 55, enterprise: 150 }
+        };
+
+        let modelCounter = 0;
+
+        function createModelRow() {
+            const modelId = `model_${modelCounter++}`;
+            return `
+                <div class="model-row" id="${modelId}">
+                    <div class="form-group">
+                        <label>Modelo LLM</label>
+                        <select onchange="updateModelCost('${modelId}')">
+                            <option value="">Seleccionar modelo...</option>
+                            ${Object.entries(llmPrices).map(([key, model]) => 
+                                `<option value="${key}">${model.name} ($${model.input}/$${model.output} per 1M tokens)</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Tokens Input/mes (millones)</label>
+                        <input type="number" step="0.1" placeholder="0.5" onchange="updateModelCost('${modelId}')">
+                    </div>
+                    <div class="form-group">
+                        <label>Tokens Output/mes (millones)</label>
+                        <input type="number" step="0.1" placeholder="0.2" onchange="updateModelCost('${modelId}')">
+                    </div>
+                    <div class="form-group">
+                        <label>Habilitado</label>
+                        <button class="toggle-btn" onclick="toggleModel('${modelId}')" data-enabled="true">ACTIVO</button>
+                    </div>
+                    <div class="cost-display">$0/mes</div>
+                </div>
+            `;
+        }
+
+        function addModel() {
+            const container = document.getElementById('llmModels');
+            container.insertAdjacentHTML('beforeend', createModelRow());
+        }
+
+        function toggleModel(modelId) {
+            const row = document.getElementById(modelId);
+            const btn = row.querySelector('.toggle-btn');
+            const enabled = btn.dataset.enabled === 'true';
+            
+            btn.dataset.enabled = !enabled;
+            btn.textContent = enabled ? 'INACTIVO' : 'ACTIVO';
+            btn.className = enabled ? 'toggle-btn disabled' : 'toggle-btn';
+            
+            updateModelCost(modelId);
+            updateTotals();
+        }
+
+        function updateModelCost(modelId) {
+            const row = document.getElementById(modelId);
+            const select = row.querySelector('select');
+            const inputTokens = parseFloat(row.querySelectorAll('input')[0].value) || 0;
+            const outputTokens = parseFloat(row.querySelectorAll('input')[1].value) || 0;
+            const costDisplay = row.querySelector('.cost-display');
+            const enabled = row.querySelector('.toggle-btn').dataset.enabled === 'true';
+            
+            if (!enabled || !select.value) {
+                costDisplay.textContent = '$0/mes';
+                updateTotals();
+                return;
+            }
+            
+            const model = llmPrices[select.value];
+            if (model) {
+                const inputCost = inputTokens * model.input;
+                const outputCost = outputTokens * model.output;
+                const totalCost = inputCost + outputCost;
+                costDisplay.textContent = `$${totalCost.toFixed(2)}/mes`;
+            }
+            
+            updateTotals();
+        }
+
+        function updateN8nCosts() {
+            const type = document.getElementById('n8nType').value;
+            const executions = parseInt(document.getElementById('executions').value) || 0;
+            const provider = document.getElementById('infraProvider').value;
+            
+            const executionsGroup = document.getElementById('executionsGroup');
+            const infraGroup = document.getElementById('infraGroup');
+            
+            let n8nCost = 0;
+            let infraCost = 0;
+            let maintenanceCost = 0;
+
+            if (type.startsWith('cloud')) {
+                executionsGroup.style.display = 'block';
+                infraGroup.style.display = 'none';
+                
+                switch(type) {
+                    case 'cloud-starter':
+                        n8nCost = 24;
+                        if (executions > 2500) {
+                            n8nCost += Math.ceil((executions - 2500) / 1000) * 10;
+                        }
+                        break;
+                    case 'cloud-pro':
+                        n8nCost = 240;
+                        if (executions > 25000) {
+                            n8nCost += Math.ceil((executions - 25000) / 1000) * 8;
+                        }
+                        break;
+                    case 'cloud-enterprise':
+                        n8nCost = Math.max(500, executions * 0.005);
+                        break;
+                }
+            } else if (type.startsWith('self')) {
+                executionsGroup.style.display = 'none';
+                infraGroup.style.display = 'block';
+                
+                if (provider && infraPrices[provider]) {
+                    const tier = type.split('-')[1];
+                    infraCost = infraPrices[provider][tier] || 0;
+                    
+                    // Costos de mantenimiento para self-hosted
+                    switch(tier) {
+                        case 'basic':
+                            maintenanceCost = 50;
+                            break;
+                        case 'production':
+                            maintenanceCost = 150;
+                            break;
+                        case 'enterprise':
+                            maintenanceCost = 500;
+                            break;
+                    }
+                }
+            }
+            
+            document.getElementById('n8nCost').textContent = `Costo n8n: $${n8nCost}/mes`;
+            document.getElementById('infraCost').textContent = `Costo Infraestructura: $${infraCost}/mes`;
+            document.getElementById('maintenanceCost').textContent = `Mantenimiento: $${maintenanceCost}/mes`;
+            
+            updateTotals();
+        }
+
+        function updatePersonalCosts() {
+            const devopsHours = parseInt(document.getElementById('devopsHours').value) || 0;
+            const devopsRate = parseInt(document.getElementById('devopsRate').value) || 0;
+            const devHours = parseInt(document.getElementById('devHours').value) || 0;
+            const devRate = parseInt(document.getElementById('devRate').value) || 0;
+            
+            const personalCost = (devopsHours * devopsRate) + (devHours * devRate);
+            document.getElementById('personalCost').textContent = `Costo Personal: $${personalCost}/mes`;
+            
+            updateTotals();
+        }
+
+        function updateTotals() {
+            // Calcular total LLM
+            let totalLLM = 0;
+            document.querySelectorAll('.model-row').forEach(row => {
+                const costText = row.querySelector('.cost-display').textContent;
+                const cost = parseFloat(costText.replace('$', '').replace('/mes', '')) || 0;
+                totalLLM += cost;
+            });
+            
+            // Calcular total infraestructura
+            const n8nCostText = document.getElementById('n8nCost').textContent;
+            const infraCostText = document.getElementById('infraCost').textContent;
+            const maintenanceCostText = document.getElementById('maintenanceCost').textContent;
+            
+            const n8nCost = parseFloat(n8nCostText.replace(/[^0-9.]/g, '')) || 0;
+            const infraCost = parseFloat(infraCostText.replace(/[^0-9.]/g, '')) || 0;
+            const maintenanceCost = parseFloat(maintenanceCostText.replace(/[^0-9.]/g, '')) || 0;
+            
+            const totalInfra = n8nCost + infraCost + maintenanceCost;
+            
+            // Calcular total personal
+            const personalCostText = document.getElementById('personalCost').textContent;
+            const totalPersonal = parseFloat(personalCostText.replace(/[^0-9.]/g, '')) || 0;
+            
+            // Totales
+            const totalMonthly = totalLLM + totalInfra + totalPersonal;
+            const totalYearly = totalMonthly * 12;
+            
+            // Actualizar display
+            document.getElementById('totalLLM').textContent = `$${totalLLM.toFixed(2)}`;
+            document.getElementById('totalInfra').textContent = `$${totalInfra.toFixed(2)}`;
+            document.getElementById('totalPersonal').textContent = `$${totalPersonal.toFixed(2)}`;
+            document.getElementById('totalMonthly').textContent = `$${totalMonthly.toFixed(2)}`;
+            document.getElementById('totalYearly').textContent = `$${totalYearly.toFixed(2)}`;
+        }
+
+        function exportToCSV() {
+            let csv = 'Categoría,Descripción,Costo Mensual,Costo Anual\n';
+            
+            // Modelos LLM
+            document.querySelectorAll('.model-row').forEach(row => {
+                const select = row.querySelector('select');
+                const enabled = row.querySelector('.toggle-btn').dataset.enabled === 'true';
+                if (select.value && enabled) {
+                    const modelName = select.options[select.selectedIndex].text.split(' (')[0];
+                    const cost = parseFloat(row.querySelector('.cost-display').textContent.replace('$', '').replace('/mes', '')) || 0;
+                    csv += `LLM,${modelName},$${cost.toFixed(2)},$${(cost * 12).toFixed(2)}\n`;
+                }
+            });
+            
+            // n8n e infraestructura
+            const n8nType = document.getElementById('n8nType').options[document.getElementById('n8nType').selectedIndex]?.text || 'No seleccionado';
+            const n8nCost = parseFloat(document.getElementById('n8nCost').textContent.replace(/[^0-9.]/g, '')) || 0;
+            const infraCost = parseFloat(document.getElementById('infraCost').textContent.replace(/[^0-9.]/g, '')) || 0;
+            const maintenanceCost = parseFloat(document.getElementById('maintenanceCost').textContent.replace(/[^0-9.]/g, '')) || 0;
+            
+            if (n8nCost > 0) csv += `n8n,${n8nType},$${n8nCost.toFixed(2)},$${(n8nCost * 12).toFixed(2)}\n`;
+            if (infraCost > 0) csv += `Infraestructura,Hosting,$${infraCost.toFixed(2)},$${(infraCost * 12).toFixed(2)}\n`;
+            if (maintenanceCost > 0) csv += `Mantenimiento,Personal,$${maintenanceCost.toFixed(2)},$${(maintenanceCost * 12).toFixed(2)}\n`;
+            
+            // Personal
+            const personalCost = parseFloat(document.getElementById('personalCost').textContent.replace(/[^0-9.]/g, '')) || 0;
+            if (personalCost > 0) csv += `Personal,Desarrollo y Mantenimiento,$${personalCost.toFixed(2)},$${(personalCost * 12).toFixed(2)}\n`;
+            
+            // Totales
+            const totalMonthly = parseFloat(document.getElementById('totalMonthly').textContent.replace('$', '')) || 0;
+            const totalYearly = parseFloat(document.getElementById('totalYearly').textContent.replace('$', '')) || 0;
+            csv += `\nTOTAL,Total General,$${totalMonthly.toFixed(2)},$${totalYearly.toFixed(2)}`;
+            
+            // Descargar archivo
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `costos_llm_n8n_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        function printCalculation() {
+            window.print();
+        }
+
+        function resetCalculator() {
+            if (confirm('¿Estás seguro de que quieres resetear todos los valores?')) {
+                document.getElementById('llmModels').innerHTML = '';
+                document.getElementById('n8nType').value = '';
+                document.getElementById('executions').value = '';
+                document.getElementById('infraProvider').value = '';
+                document.getElementById('devopsHours').value = '0';
+                document.getElementById('devopsRate').value = '60';
+                document.getElementById('devHours').value = '0';
+                document.getElementById('devRate').value = '50';
+                
+                document.getElementById('executionsGroup').style.display = 'none';
+                document.getElementById('infraGroup').style.display = 'none';
+                
+                modelCounter = 0;
+                updateN8nCosts();
+                updatePersonalCosts();
+                updateTotals();
+                
+                addModel(); // Agregar un modelo por defecto
+            }
+        }
+
+        // Inicializar con un modelo por defecto
+        window.onload = function() {
+            addModel();
+            updatePersonalCosts();
+        };
+    </script>
+</body>
+</html>
