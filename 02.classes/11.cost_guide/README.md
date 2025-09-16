@@ -10,7 +10,6 @@
 7. [Plan de Implementación](#plan-de-implementación)
 8. [Monitoreo y Optimización](#monitoreo-y-optimización)
 
----
 
 ## Resumen Ejecutivo
 
@@ -25,77 +24,108 @@
 - **Configuración empresarial**: $2,000-5,000
 - **Costos mensuales recurrentes**: $200-800
 
----
 
 ## Análisis de Costos LLM APIs
 
 ### 1. OpenAI (Líder del Mercado)
 
-#### GPT-4o (Modelo Principal)
-- **Input**: $2.50 por 1M tokens
+#### GPT-5 (Modelo Principal)
+
+- **Input**: $1.25 por 1M tokens
 - **Output**: $10.00 por 1M tokens
 - **Context Window**: 128k tokens
 - **Casos de uso**: Análisis complejo, generación de contenido premium
 
-#### GPT-4o Mini (Más Económico)
-- **Input**: $0.15 por 1M tokens
+
+#### GPT-4o 
+
+- **Input**: $2.5 por 1M tokens
 - **Output**: $0.60 por 1M tokens
 - **Context Window**: 128k tokens
 - **Casos de uso**: Tareas rutinarias, procesamiento en lote
 
+
+
 #### GPT-3.5 Turbo (Más Barato)
+
 - **Input**: $0.50 por 1M tokens
 - **Output**: $1.50 por 1M tokens
 - **Context Window**: 16k tokens
 - **Casos de uso**: Chatbots básicos, clasificación de texto
 
+
+
 ### 2. Anthropic Claude (Competidor Principal)
 
-#### Claude 3.5 Sonnet
-- **Input**: $3.00 por 1M tokens
-- **Output**: $15.00 por 1M tokens
-- **Context Window**: 200k tokens
-- **Fortalezas**: Análisis de documentos largos, razonamiento complejo
+  
+#### Claude 4.1 Opus (Premium)
 
-#### Claude 3.5 Haiku (Más Rápido)
-- **Input**: $0.25 por 1M tokens
-- **Output**: $1.25 por 1M tokens
-- **Context Window**: 200k tokens
-- **Casos de uso**: Respuestas rápidas, procesamiento en tiempo real
-
-#### Claude 3 Opus (Premium)
 - **Input**: $15.00 por 1M tokens
 - **Output**: $75.00 por 1M tokens
 - **Context Window**: 200k tokens
 - **Casos de uso**: Tareas críticas, máxima calidad
 
+
+#### Claude 4 Sonnet
+
+- **Input**: $3.00 por 1M tokens
+- **Output**: $15.00 por 1M tokens
+- **Context Window**: 200k tokens
+- **Fortalezas**: Análisis de documentos largos, razonamiento complejo
+
+  
+
+#### Claude 3.5 Haiku (Más Rápido)
+
+- **Input**: $0.8 por 1M tokens
+- **Output**: $4 por 1M tokens
+- **Context Window**: 200k tokens
+- **Casos de uso**: Respuestas rápidas, procesamiento en tiempo real
+
+
+
+
 ### 3. Google Gemini
 
-#### Gemini 1.5 Pro
+  
+
+#### Gemini 2.5 Pro
+
 - **Input**: $1.25 por 1M tokens
-- **Output**: $5.00 por 1M tokens
+- **Output**: $10.00 por 1M tokens
 - **Context Window**: 2M tokens
 - **Ventajas**: Context window más grande, integración con Google Cloud
 
-#### Gemini 1.5 Flash
-- **Input**: $0.075 por 1M tokens
-- **Output**: $0.30 por 1M tokens
+
+
+
+#### Gemini 2.5 Flash
+
+- **Input**: $0.3 por 1M tokens
+- **Output**: $2.5 por 1M tokens
 - **Context Window**: 1M tokens
 - **Casos de uso**: Aplicaciones de alto volumen
 
+
+
 ### 4. Otros Proveedores Competitivos
 
+  
+
 #### Mistral AI
+
 - **Mistral Small**: $0.20-0.60 por 1M tokens
 - **Mistral Large**: $2.00-6.00 por 1M tokens
 - **Ventajas**: Precios competitivos, buena relación calidad-precio
 
+
+
 #### Cohere
+
 - **Command R**: $0.15-0.60 por 1M tokens
 - **Command R+**: $3.00-15.00 por 1M tokens
 - **Especialización**: Tareas empresariales, integración fácil
 
----
 
 ## Comparativa Detallada de Modelos
 
