@@ -1,0 +1,394 @@
+{
+  "name": "Demo Merge - error",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "3c06a3bc-865c-4aae-b3ac-310ab8442090",
+      "name": "When clicking \"Execute Workflow\"",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        192,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      id: 1,\n      name: \"Alice\",\n      department: \"Engineering\",\n      salary: 85000,\n      status: \"active\"\n    }\n  },\n  {\n    json: {\n      id: 2,\n      name: \"Bob\",\n      department: \"Sales\",\n      salary: 65000,\n      status: \"active\"\n    }\n  },\n  {\n    json: {\n      id: 3,\n      name: \"Charlie\",\n      department: \"Engineering\",\n      salary: 95000,\n      status: \"active\"\n    }\n  }\n];"
+      },
+      "id": "ab2fb9c4-71a6-4dbd-aeb1-853bfa71663f",
+      "name": "Generate Employee Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      id: 1,\n      email: \"alice@company.com\",\n      phone: \"+1-555-0101\",\n      location: \"New York\"\n    }\n  },\n  {\n    json: {\n      id: 2,\n      email: \"bob@company.com\",\n      phone: \"+1-555-0102\",\n      location: \"San Francisco\"\n    }\n  },\n  {\n    json: {\n      id: 3,\n      email: \"charly@company.com\",\n      phone: \"+1-555-0104\",\n      location: \"Chicago\"\n    }\n  }\n];"
+      },
+      "id": "3bb4d2ee-cccb-4ad1-9a88-8e011c358f4c",
+      "name": "Generate Contact Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        768
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "94b3db0a-2789-4a0d-b16e-f573f099630a",
+      "name": "Split Into Batches - Sales",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1088,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 📝 WORKFLOW OVERVIEW\n\nThis workflow demonstrates three key n8n nodes:\n- **MERGE**: Combines data from multiple sources\n- **SWITCH**: Routes data based on conditions\n- **ITERATE** (Split in Batches): Processes items one by one\n\n**Data Flow:**\n1. Generate sample employee data\n2. Generate sample contact data\n3. Merge both datasets by ID\n4. Route by department using Switch\n5. Process each employee individually\n6. Combine final results",
+        "height": 240,
+        "width": 350,
+        "color": 7
+      },
+      "id": "38336cf2-08aa-4ee7-a55e-1df6bcee9d45",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 🔄 MERGE NODE EXPLANATION\n\n**Purpose**: Combines data from two inputs\n\n**Mode**: Combine by Key (ID matching)\n\n**Input 1 (Employee Data)**:\n```json\n[\n  {\"id\": 1, \"name\": \"Alice\", \"department\": \"Engineering\"},\n  {\"id\": 2, \"name\": \"Bob\", \"department\": \"Sales\"},\n  {\"id\": 3, \"name\": \"Charlie\", \"department\": \"Engineering\"}\n]\n```\n\n**Input 2 (Contact Data)**:\n```json\n[\n  {\"id\": 1, \"email\": \"alice@company.com\", \"location\": \"NY\"},\n  {\"id\": 2, \"email\": \"bob@company.com\", \"location\": \"SF\"},\n  {\"id\": 4, \"email\": \"diana@company.com\", \"location\": \"Chicago\"}\n]\n```\n\n**Output** (Merged by matching IDs):\n```json\n[\n  {\"id\": 1, \"name\": \"Alice\", \"email\": \"alice@company.com\", ...},\n  {\"id\": 2, \"name\": \"Bob\", \"email\": \"bob@company.com\", ...}\n]\n```\n\n⚠️ **Note**: Only records with matching IDs are included (1,2). ID 3 has no contact info, ID 4 has no employee info.",
+        "height": 420,
+        "width": 400,
+        "color": 4
+      },
+      "id": "a7457cd5-110d-4ab1-a0ca-e19d6716546b",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        256,
+        992
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 🔀 SWITCH NODE EXPLANATION\n\n**Purpose**: Routes data to different paths based on conditions\n\n**Configuration**:\n- **Rule 1**: department = \"Engineering\" → engineering_employees output\n- **Rule 2**: department = \"Sales\" → sales_employees output\n- **Fallback**: Any other department → extra output\n\n**Input Data**:\n```json\n[\n  {\"id\": 1, \"name\": \"Alice\", \"department\": \"Engineering\"},\n  {\"id\": 2, \"name\": \"Bob\", \"department\": \"Sales\"}\n]\n```\n\n**Output Routing**:\n- **engineering_employees**: Alice's record\n- **sales_employees**: Bob's record\n- **extra**: (none in this example)\n\n💡 **Key Feature**: Each output can be connected to different processing paths, allowing department-specific logic.",
+        "height": 320,
+        "width": 380,
+        "color": 5
+      },
+      "id": "5ff52283-dfa3-4b49-a2e7-d7484c669e89",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        592,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 🔁 ITERATE NODE EXPLANATION\n\n**Node Used**: Split in Batches (n8n's iteration method)\n\n**Purpose**: Processes items one at a time instead of all at once\n\n**Configuration**: Batch Size = 1 (process one item per iteration)\n\n**How it works**:\n1. Takes array of items as input\n2. Splits into batches of 1 item each\n3. Processes each item individually\n4. Automatically loops until all items processed\n\n**Input** (Engineering path):\n```json\n[{\"id\": 1, \"name\": \"Alice\", \"department\": \"Engineering\"}]\n```\n\n**Processing**: Each employee gets individual attention:\n- Calculate personalized bonus\n- Add processing timestamp\n- Include batch information\n\n**Batch Context Available**:\n- `$currentBatch`: Which iteration (1, 2, 3...)\n- `$totalBatches`: Total number of iterations\n\n**Why Iterate?**\n- Individual processing logic\n- Rate limiting API calls\n- Memory management for large datasets\n- Progress tracking",
+        "height": 460,
+        "width": 420,
+        "color": 6
+      },
+      "id": "8e61ef20-c318-4226-8f54-a995b367156c",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        832,
+        992
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 📊 FINAL MERGE EXPLANATION\n\n**Purpose**: Combines results from parallel processing paths\n\n**Mode**: Combine All (merge all inputs into single array)\n\n**Input Sources**:\n1. Processed Engineering employees\n2. Processed Sales employees\n\n**Sample Final Output**:\n```json\n[\n  {\n    \"id\": 1,\n    \"name\": \"Alice\",\n    \"department\": \"Engineering\",\n    \"salary\": 85000,\n    \"bonus\": 12750,\n    \"bonus_type\": \"Engineering Excellence\",\n    \"email\": \"alice@company.com\",\n    \"processed_at\": \"2024-01-15T10:30:00Z\"\n  },\n  {\n    \"id\": 2,\n    \"name\": \"Bob\",\n    \"department\": \"Sales\",\n    \"salary\": 65000,\n    \"bonus\": 7800,\n    \"bonus_type\": \"Sales Achievement\",\n    \"email\": \"bob@company.com\",\n    \"processed_at\": \"2024-01-15T10:30:01Z\"\n  }\n]\n```\n\n✅ **Result**: Unified dataset with department-specific processing applied to each employee.",
+        "height": 400,
+        "width": 380,
+        "color": 3
+      },
+      "id": "b034ae5d-8bd3-427d-85ea-8e59cbbd280a",
+      "name": "Sticky Note4",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1488,
+        1056
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Calculate the bonus for {{ $json.id }} based on the salary {{ $('Switch by Department').item.json.salary }}",
+        "options": {
+          "systemMessage": "=You must return ONLY one valid JSON object.\n- No code fences, no comments, no explanations.\n- No leading/trailing spaces, no BOM, and no newline characters.\n- The response MUST start with \"{\" and end with \"}\".\n\nBusiness rule:\n- bonus = salary * 0.30\n- total = salary + bonus\n\nInput can be:\n(a) an array of objects where each object has an \"output\" field containing a JSON string, or\n(b) a single object already in JSON form.\n\nInstructions:\n1) For each element:\n   - If it has an \"output\" field that is a JSON string, parse that string as JSON.\n   - If it is already a JSON object, use it directly.\n2) From each parsed object, extract the array under the key \"results\" (if present). If absent but the object contains fields for a single record, treat it as a one-item results array.\n3) For every record, produce an object with EXACTLY these fields:\n   - id: copy from input if present; otherwise null.\n   - name: copy from input if present; otherwise null.\n   - salary: number (if invalid or missing, use 0).\n   - bonus: number computed per rule above.\n   - total: number computed per rule above.\n4) Emit exactly this JSON schema, minified (no spaces/newlines):\n{\"results\":[{...}]}\n\nUse:\nid: {{ $json.id }}\nname: {{ $json.name }}\nsalary: {{ $json.salary }}\ndepartment: {{ $json.department }}\n\nRules:\n- Do NOT wrap the JSON in quotes.\n- Do NOT add any keys other than \"results\".\n- Preserve numeric types (no quoting numbers).\n- Skip records that cannot be parsed into an object.\n- The final output must be a single minified JSON object as shown above, with no extra characters before or after."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1408,
+        160
+      ],
+      "id": "be239c8c-923a-41a6-8309-bd12803dac2a",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1424,
+        -96
+      ],
+      "id": "a6309521-dcf3-4aca-90fe-322c69f23908",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "51oN9QrCM5ZMZ1Zu",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolCalculator",
+      "typeVersion": 1,
+      "position": [
+        1584,
+        -96
+      ],
+      "id": "6746aee1-fa50-4772-8eea-ef0ceb815a1d",
+      "name": "Calculator"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "cd627c57-eead-4c93-9ada-f08a1039da9a",
+      "name": "Split Into Batches - Sales1",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1072,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Calculate the bonus for {{ $json.id }} based on the salary {{ $('Switch by Department').item.json.salary }}",
+        "options": {
+          "systemMessage": "=You must return ONLY one valid JSON object.\n- No code fences, no comments, no explanations.\n- No leading/trailing spaces, no BOM, and no newline characters.\n- The response MUST start with \"{\" and end with \"}\".\n\nBusiness rule:\n- bonus = salary * 0.15\n- total = salary + bonus\n\nInput can be:\n(a) an array of objects where each object has an \"output\" field containing a JSON string, or\n(b) a single object already in JSON form.\n\nInstructions:\n1) For each element:\n   - If it has an \"output\" field that is a JSON string, parse that string as JSON.\n   - If it is already a JSON object, use it directly.\n2) From each parsed object, extract the array under the key \"results\" (if present). If absent but the object contains fields for a single record, treat it as a one-item results array.\n3) For every record, produce an object with EXACTLY these fields:\n   - id: copy from input if present; otherwise null.\n   - name: copy from input if present; otherwise null.\n   - salary: number (if invalid or missing, use 0).\n   - bonus: number computed per rule above.\n   - total: number computed per rule above.\n4) Emit exactly this JSON schema, minified (no spaces/newlines):\n{\"results\":[{...}]}\n\nUse:\nid: {{ $json.id }}\nname: {{ $json.name }}\nsalary: {{ $json.salary }}\ndepartment: {{ $json.department }}\n\nRules:\n- Do NOT wrap the JSON in quotes.\n- Do NOT add any keys other than \"results\".\n- Preserve numeric types (no quoting numbers).\n- Skip records that cannot be parsed into an object.\n- The final output must be a single minified JSON object as shown above, with no extra characters before or after."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1408,
+        672
+      ],
+      "id": "020d9f4c-f84d-4a56-8f59-01cb28374d0e",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1392,
+        912
+      ],
+      "id": "b63731d2-62a7-4ea8-8cbd-f9db72296036",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "51oN9QrCM5ZMZ1Zu",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolCalculator",
+      "typeVersion": 1,
+      "position": [
+        1568,
+        896
+      ],
+      "id": "cbbbaa41-0de9-491f-88a8-c31450f011cd",
+      "name": "Calculator1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking \"Execute Workflow\"": {
+      "main": [
+        [
+          {
+            "node": "Generate Employee Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generate Contact Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Employee Data": {
+      "main": [
+        [
+          {
+            "node": "Split Into Batches - Sales1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Contact Data": {
+      "main": [
+        [
+          {
+            "node": "Split Into Batches - Sales",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Into Batches - Sales": {
+      "main": [
+        [],
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculator": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Split Into Batches - Sales1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Into Batches - Sales1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculator1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Split Into Batches - Sales",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7af1a042-2569-4402-bfd0-fc7976abb3b8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "21c01bb5c5f3f34d6e572cf61183391f18fedb8ad88d29888d48ec9c5f89b544"
+  },
+  "id": "HVYdqPuKv2hZNJQE",
+  "tags": []
+}

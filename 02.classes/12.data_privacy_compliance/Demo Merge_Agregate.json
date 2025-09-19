@@ -1,0 +1,222 @@
+{
+  "name": "Demo Merge_Agregate",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1216,
+        -16
+      ],
+      "id": "062255a9-1d24-4bba-b578-8660a42add61",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      id: 1,\n      name: \"Alice\",\n      department: \"Engineering\",\n      salary: 85000,\n      status: \"active\"\n    }\n  },\n  {\n    json: {\n      id: 2,\n      name: \"Bob\",\n      department: \"Sales\",\n      salary: 65000,\n      status: \"active\"\n    }\n  },\n  {\n    json: {\n      id: 3,\n      name: \"Charlie\",\n      department: \"Engineering\",\n      salary: 95000,\n      status: \"active\"\n    }\n  }\n];"
+      },
+      "id": "9bb0c7a1-1fec-4886-8284-d8b5cb9c0b71",
+      "name": "Generate Employee Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -896,
+        -208
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      id: 1,\n      email: \"alice@company.com\",\n      phone: \"+1-555-0101\",\n      location: \"New York\"\n    }\n  },\n  {\n    json: {\n      id: 2,\n      email: \"bob@company.com\",\n      phone: \"+1-555-0102\",\n      location: \"San Francisco\"\n    }\n  },\n  {\n    json: {\n      id: 3,\n      email: \"charly@company.com\",\n      phone: \"+1-555-0104\",\n      location: \"Chicago\"\n    }\n  }\n];"
+      },
+      "id": "e891ccc7-011c-4b4d-84c1-9bd1e2cff859",
+      "name": "Generate Contact Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -912,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combineBySql",
+        "query": "SELECT * \n  FROM input1 JOIN input2 ON input1.id = input2.id",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -560,
+        -48
+      ],
+      "id": "16f1a026-1b8c-457e-9e6f-7e4d2d5d8c78",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -208,
+        -400
+      ],
+      "id": "55412923-4d52-4545-b3d8-0aa411f9826c",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Use the information below:\n\nid: {{ $json.id }}\nname: {{ $json.name }}\nDepartment: {{ $json.department }}\nSalary: {{ $json.salary }}\nStatus: {{ $json.status }}",
+        "options": {
+          "systemMessage": "You are an HR representative. Create a structured report on the status of human resources.\n\nOutput rules:\n- The response MUST be a single valid JSON object.\n- Do not include explanations, comments, code fences, or any characters outside the JSON.\n- The JSON MUST start with \"{\" and end with \"}\".\n\nSchema requirements:\n{\n  \"employees\": [\n    {\n      \"id\": <number>,\n      \"name\": \"<string>\",\n      \"role\": \"<string>\",\n      \"status\": \"<active | inactive | on_leave>\",\n      \"department\": \"<string>\",\n      \"last_update\": \"<YYYY-MM-DD>\"\n    }\n  ],\n  \"summary\": {\n    \"total\": <number>,\n    \"active\": <number>,\n    \"inactive\": <number>,\n    \"on_leave\": <number>\n  }\n}\n\nEnsure all numeric values are numbers (not strings). \nReturn ONLY this JSON object — no extra spaces, line breaks, or characters.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        144,
+        -304
+      ],
+      "id": "fbf88bcd-56dc-4796-bd7b-da9f5c67703c",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        176,
+        80
+      ],
+      "id": "ea933550-1bb8-4528-8eec-7e539a192033",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "51oN9QrCM5ZMZ1Zu",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        288,
+        -544
+      ],
+      "id": "6750eb27-c49d-4458-a919-58c13020b303",
+      "name": "Aggregate"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Generate Employee Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generate Contact Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Employee Data": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Contact Data": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1f8b8ea1-8c6e-45be-9ff6-8a39c8ae6d40",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "21c01bb5c5f3f34d6e572cf61183391f18fedb8ad88d29888d48ec9c5f89b544"
+  },
+  "id": "OZYXyvqesyAua8O1",
+  "tags": []
+}
