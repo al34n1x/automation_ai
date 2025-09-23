@@ -102,7 +102,7 @@ services:
 
 
 ## 5) Seguridad en la operación de flujos
-*Objetivo**: que el día a día no debilite lo construido.
+**Objetivo**: que el día a día no debilite lo construido.
 
 **Controles operativos**
 - **Usuarios y roles**: separar admin de editores; cuentas nominales; MFA en el IdP si hay SSO.
