@@ -8,14 +8,14 @@ Crear un flujo mínimo en **n8n** que:
 
 > **Opcional (extra 5 min):** guardar un log en **Google Sheets**.
 
----
+
 
 ## ✅ Prerrequisitos
 - Cuenta en **n8n** (self-hosted o cloud)  
 - Credencial de **OpenAI** configurada  
 - (Opcional) Cuenta Google para Google Sheets (OAuth)
 
----
+
 
 ## 🧱 Estructura del flujo
 
@@ -27,7 +27,7 @@ Crear un flujo mínimo en **n8n** que:
               (Opcional) [Google Sheets: Append Log]
 ```
 
----
+
 
 ## 🧩 Paso a paso
 
@@ -38,7 +38,7 @@ Crear un flujo mínimo en **n8n** que:
 
 > Tip: Podés abrir el enlace del chat en una nueva pestaña y probar mensajes como “Hola” o “¿qué podés hacer?”.
 
----
+
 
 ### 2) Agente (OpenAI Chat o Conversational Agent)
 
@@ -64,7 +64,7 @@ Crear un flujo mínimo en **n8n** que:
 - **Entrada:**  
   `={{$json.chat.message}}`
 
----
+
 
 ### 3) Responder al mensaje
 - **Nodo:** `Respond to Chat Message`  
@@ -74,7 +74,7 @@ Crear un flujo mínimo en **n8n** que:
 
 > Este nodo responde directamente en el mismo chat que activó el trigger.
 
----
+
 
 ## 🧪 Probar
 1. Activá el workflow.  
@@ -84,30 +84,6 @@ Crear un flujo mínimo en **n8n** que:
    - “Dame un tip de productividad.”  
 4. El agente debe contestar en **1–2 oraciones**, claro y sin emojis.
 
----
-
-## 🧰 (Opcional) Logging en Google Sheets (5 min extra)
-
-### Preparar hoja
-- Google Sheet con pestaña `Logs` y columnas:
-  | timestamp | chat_id | username | mensaje | respuesta |
-  |-----------|---------|----------|---------|-----------|
-
-### Nodo: Set (armar fila)
-- **Valores:**
-  - `timestamp` → `={{$now}}`
-  - `chat_id` → `={{$json.chat.id}}`
-  - `username` → `={{$json.chat.user.name || ""}}`
-  - `mensaje` → `={{$json.chat.message}}`
-  - `respuesta` → `={{$json.data || $json.response || $json.text}}`
-
-### Nodo: Google Sheets (Append)
-- **Operation:** `Append`  
-- **Sheet:** `Logs`  
-- **Spreadsheet:** tu Google Sheet  
-- Conectar después del **Respond to Chat Message**.
-
----
 
 ## 🛡️ Buenas prácticas express
 - **Costo bajo:** prompt breve, temperatura baja.  
@@ -115,14 +91,14 @@ Crear un flujo mínimo en **n8n** que:
 - **Fallback:** si el agente falla, enviar un mensaje fijo como:  
   - “Tuve un problema para responder. ¿Podés repetir en una frase?”
 
----
+
 
 ## 🧷 Troubleshooting rápido
 - **No llegan mensajes:** asegurate de que el workflow esté activo y usás el **Chat URL correcto**.  
 - **Mensaje vacío:** revisá el output del agente y ajustá el campo (`data`, `response`, `text`).  
 - **Error de credenciales:** reautorizar OpenAI/Google.
 
----
+
 
 ## ⏱️ Resultado esperado
 En 10–15 minutos vas a tener:
