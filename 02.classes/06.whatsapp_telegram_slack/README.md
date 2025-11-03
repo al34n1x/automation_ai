@@ -22,6 +22,9 @@ Este documento explica paso a paso cómo desplegar **Evolution API** en **Railwa
 ---
 
 ### 2. Crear un nuevo proyecto
+- Entra a la siguiente [URL](https://railway.com/deploy/evolution-api-3) 
+- Configura to Authorization key.
+- Haz clic en deploy
 - En el dashboard, haz clic en **“New Project”**.
 - Railway permite crear proyectos desde cero, desde GitHub o usando **plantillas**.
 - Seleccionaremos la plantilla oficial de Evolution API.
