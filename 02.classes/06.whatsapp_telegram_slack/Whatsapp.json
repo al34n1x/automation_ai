@@ -10,12 +10,211 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -32,
+        -144,
         -192
       ],
       "id": "c311443a-7cdf-4a9a-9fe5-07d49c5b7d73",
       "name": "Webhook",
       "webhookId": "1e886c44-d80a-4375-9b38-b8fb6d5c7b70"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=El usuario envía el siguiente mensaje:\nuser_name: {{ $json.chat_id }}\nmessage: {{ $json.message }}",
+        "options": {
+          "systemMessage": "Eres un asistente de cursos de SENPAI. Usa solo el vector store como fuente de informacion. Si no hay informacion, indica no hay datos. Responde siempre en una sola linea y con texto plano compatible con JSON. No uses saltos de linea, tildes, signos de interrogacion iniciales, comillas internas, emojis, guiones, enumeraciones ni palabras demasiado largas. Responde breve para WhatsApp. Mantene siempre un unico mensaje conciso y claro. No agregues encabezados como {\"respuesta\": o {\"text\":"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        688,
+        -192
+      ],
+      "id": "de319bc4-6c99-4718-bf86-969e5680b59a",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        528,
+        64
+      ],
+      "id": "644423d4-9fcb-44d6-8dbc-a0a57031171f",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "dlWZXU67hhJeUpN2",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "SENPAI Knowledge base",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "infocursos",
+          "mode": "list",
+          "cachedResultName": "infocursos"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        848,
+        48
+      ],
+      "id": "f085fc06-037e-4201-a641-92816039251d",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "gNTzmoEJ3IsCyGJv",
+          "name": "SENPAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        848,
+        240
+      ],
+      "id": "f34caaf5-0389-4853-b2b0-f636b77aa1f1",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "dlWZXU67hhJeUpN2",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Set Fields').item.json.server_url }}/chat/markMessageAsRead/{{ $('Set Fields').item.json.instance_name }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $('Set Fields').item.json.apikey }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"readMessages\": [\n    {\n      \"remoteJid\": \"{{ $('Set Fields').item.json.chat_id }}\",\n  \"fromMe\": false,\n  \"id\": \"{{ $('Set Fields').item.json.data_key_id }}\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1216,
+        -32
+      ],
+      "id": "1518efc6-bb80-449b-9cb3-3efeb0b67ec8",
+      "name": "Leer Mensajes"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Set Fields').item.json.server_url }}/message/sendText/{{ $('Set Fields').item.json.instance_name }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $('Set Fields').item.json.apikey }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{ $('Set Fields').item.json.chat_id }}\",\n  \"text\": \"{{ $('AI Agent').item.json.output }}\",\n  \"delay\": 2000\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1408,
+        -32
+      ],
+      "id": "a7f22c38-36bf-425c-bc04-8a8d5c9bb8a3",
+      "name": "Enviar mensaje"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Set Fields').item.json.server_url }}/evolutionBot/changeStatus/{{ $('Set Fields').item.json.instance_name }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $('Set Fields').item.json.apikey }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"remoteJid\": \"{{ $('Set Fields').item.json.chat_id }}\",\n    \"status\": \"closed\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1600,
+        -32
+      ],
+      "id": "fd3baf36-430b-4bc7-80a0-5b36f10e07f2",
+      "name": "Cerrar mensaje"
+    },
+    {
+      "parameters": {
+        "content": "## Webhook\nInterface que espera llamada de Evolution API.\nLa información de este webhook, su URL de producción, se debe de utilizar en Evolution API, en el apartado de Events, Webhook, y introducirla en el campo correspondiente.",
+        "height": 752,
+        "width": 336
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -240,
+        -368
+      ],
+      "typeVersion": 1,
+      "id": "f2b59609-8f17-40ad-9a99-c466c91a13ae",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Set field\nCreamos variables y le pasamos los valores que nos envía la instancia de Evolution API para que sea más simple poder gestionarlos en los próximos nodos.",
+        "height": 752,
+        "width": 336,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        112,
+        -368
+      ],
+      "typeVersion": 1,
+      "id": "ca9bfbbc-aaaf-478e-bdee-dc874204356e",
+      "name": "Sticky Note1"
     },
     {
       "parameters": {
@@ -50,6 +249,12 @@
               "name": "message",
               "value": "={{ $json.body.data.message.conversation }}",
               "type": "string"
+            },
+            {
+              "id": "025135eb-12bb-45b4-a79c-f27da63ba6cc",
+              "name": "data_key_id",
+              "value": "={{ $json.body.data.key.id }}",
+              "type": "string"
             }
           ]
         },
@@ -58,125 +263,43 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        176,
+        224,
         -192
       ],
       "id": "5ba1f57f-2405-4237-b3ee-e0b2f2bc2280",
-      "name": "Edit Fields"
+      "name": "Set Fields"
     },
     {
       "parameters": {
-        "promptType": "define",
-        "text": "=El usuario envía el siguiente mensaje:\nuser_name: {{ $json.chat_id }}\nmessage: {{ $json.message }}",
-        "options": {
-          "systemMessage": "Eres un asistente de cursos de SENPAI. Usa solo el vector store como fuente de informacion. Si no hay informacion, indica no hay datos. Responde siempre en una sola linea y con texto plano compatible con JSON. No uses saltos de linea, tildes, signos de interrogacion iniciales, comillas internas, emojis, guiones, enumeraciones ni palabras demasiado largas. Responde breve para WhatsApp. Mantene siempre un unico mensaje conciso y claro. No agregues encabezados como {\"respuesta\": o {\"text\":"
-        }
+        "content": "## Agente\nConfiguración de Agente inteligente que toma la solicitud del usuario y busca información en su base de conocimiento. En este ejemplo implementamos RAG utilizando PineCone.",
+        "height": 752,
+        "width": 672,
+        "color": 3
       },
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 2.2,
+      "type": "n8n-nodes-base.stickyNote",
       "position": [
-        384,
-        -192
+        464,
+        -368
       ],
-      "id": "de319bc4-6c99-4718-bf86-969e5680b59a",
-      "name": "AI Agent"
+      "typeVersion": 1,
+      "id": "acb64bf8-5675-4678-8502-74899d97856d",
+      "name": "Sticky Note2"
     },
     {
       "parameters": {
-        "model": {
-          "__rl": true,
-          "mode": "list",
-          "value": "gpt-4.1-mini"
-        },
-        "options": {}
+        "content": "## Whatsapp\nLlamadas HTTP Request a la instancia de Evolution API. El mensaje de WhatsApp debe de manejar tres estados.\n\n- Leido\n- Enviar mensaje\n- Cerrar instancia\n\nDocumentación API\nhttps://www.postman.com/agenciadgcode/evolution-api/overview",
+        "height": 752,
+        "width": 672,
+        "color": 4
       },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-      "typeVersion": 1.2,
+      "type": "n8n-nodes-base.stickyNote",
       "position": [
-        240,
-        16
+        1152,
+        -368
       ],
-      "id": "644423d4-9fcb-44d6-8dbc-a0a57031171f",
-      "name": "OpenAI Chat Model",
-      "credentials": {
-        "openAiApi": {
-          "id": "dlWZXU67hhJeUpN2",
-          "name": "OpenAi account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "={{ $('Edit Fields').item.json.server_url }}/message/sendText/{{ $('Edit Fields').item.json.instance_name }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "apikey",
-              "value": "={{ $('Edit Fields').item.json.apikey }}"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"number\": \"{{ $('Edit Fields').item.json.chat_id }}\",\n  \"text\": \"{{ $json.output }}\",\n  \"delay\": 2000\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        736,
-        -192
-      ],
-      "id": "a7f22c38-36bf-425c-bc04-8a8d5c9bb8a3",
-      "name": "HTTP Request"
-    },
-    {
-      "parameters": {
-        "mode": "retrieve-as-tool",
-        "toolDescription": "SENPAI Knowledge base",
-        "pineconeIndex": {
-          "__rl": true,
-          "value": "infocursos",
-          "mode": "list",
-          "cachedResultName": "infocursos"
-        },
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
-      "typeVersion": 1.3,
-      "position": [
-        576,
-        32
-      ],
-      "id": "f085fc06-037e-4201-a641-92816039251d",
-      "name": "Pinecone Vector Store",
-      "credentials": {
-        "pineconeApi": {
-          "id": "gNTzmoEJ3IsCyGJv",
-          "name": "SENPAI"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
-      "typeVersion": 1.2,
-      "position": [
-        672,
-        240
-      ],
-      "id": "f34caaf5-0389-4853-b2b0-f636b77aa1f1",
-      "name": "Embeddings OpenAI",
-      "credentials": {
-        "openAiApi": {
-          "id": "dlWZXU67hhJeUpN2",
-          "name": "OpenAi account"
-        }
-      }
+      "typeVersion": 1,
+      "id": "68f87fdc-23e1-47d7-bcde-417ba592f68a",
+      "name": "Sticky Note3"
     }
   ],
   "pinData": {
@@ -186,21 +309,21 @@
           "headers": {
             "host": "geekbydefault.app.n8n.cloud",
             "user-agent": "axios/1.7.9",
-            "content-length": "636",
+            "content-length": "639",
             "accept-encoding": "gzip, br",
             "cdn-loop": "cloudflare; loops=1; subreqs=1",
             "cf-connecting-ip": "208.77.246.85",
             "cf-ew-via": "15",
             "cf-ipcountry": "SG",
-            "cf-ray": "998bb9caa0760519-SIN",
+            "cf-ray": "998be5f525ac8930-SIN",
             "cf-visitor": "{\"scheme\":\"https\"}",
             "cf-worker": "n8n.cloud",
             "content-type": "application/json",
-            "x-forwarded-for": "208.77.246.85, 172.69.165.36",
+            "x-forwarded-for": "208.77.246.85, 172.70.92.198",
             "x-forwarded-host": "geekbydefault.app.n8n.cloud",
             "x-forwarded-port": "443",
             "x-forwarded-proto": "https",
-            "x-forwarded-server": "traefik-prod-users-gwc-45-5cf4858c8f-qprj7",
+            "x-forwarded-server": "traefik-prod-users-gwc-45-5cf4858c8f-tn64s",
             "x-is-trusted": "yes",
             "x-real-ip": "208.77.246.85"
           },
@@ -213,20 +336,20 @@
               "key": {
                 "remoteJid": "34610144692@s.whatsapp.net",
                 "fromMe": true,
-                "id": "3ABBC458B0BE146B1562"
+                "id": "3A5C8E726E5D4388D0F0"
               },
               "pushName": "AL34N!X",
               "status": "SERVER_ACK",
               "message": {
-                "conversation": "Me das información de cursos?"
+                "conversation": "Dame información de cursos de IA"
               },
               "messageType": "conversation",
-              "messageTimestamp": 1762171377,
+              "messageTimestamp": 1762173186,
               "instanceId": "c7c3a2fb-2a45-47f8-a6c9-1996bbcd356c",
               "source": "ios"
             },
             "destination": "https://geekbydefault.app.n8n.cloud/webhook/bot",
-            "date_time": "2025-11-03T09:02:58.139Z",
+            "date_time": "2025-11-03T09:33:07.153Z",
             "sender": "34610144692@s.whatsapp.net",
             "server_url": "https://evolution-api-production-016d.up.railway.app",
             "apikey": "28E4615B545A-4358-8105-E8D1A96040D2"
@@ -242,18 +365,7 @@
       "main": [
         [
           {
-            "node": "Edit Fields",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Edit Fields": {
-      "main": [
-        [
-          {
-            "node": "AI Agent",
+            "node": "Set Fields",
             "type": "main",
             "index": 0
           }
@@ -275,7 +387,7 @@
       "main": [
         [
           {
-            "node": "HTTP Request",
+            "node": "Leer Mensajes",
             "type": "main",
             "index": 0
           }
@@ -303,13 +415,46 @@
           }
         ]
       ]
+    },
+    "Leer Mensajes": {
+      "main": [
+        [
+          {
+            "node": "Enviar mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar mensaje": {
+      "main": [
+        [
+          {
+            "node": "Cerrar mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "8eaff360-5063-45a7-9bc1-7ae9bcbacfbe",
+  "versionId": "bb6fdbb3-3c3f-4ccd-b6b3-97950f623d12",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "f5407724cf491da14ebc822933791ea61b7673f4855ed6ef0aaedf8d810c1166"
