@@ -10,10 +10,10 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -656,
-        -16
+        -32,
+        -192
       ],
-      "id": "354b9105-150c-44e5-8270-81cb8f8fcebf",
+      "id": "c311443a-7cdf-4a9a-9fe5-07d49c5b7d73",
       "name": "Webhook",
       "webhookId": "1e886c44-d80a-4375-9b38-b8fb6d5c7b70"
     },
@@ -58,10 +58,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -448,
-        -16
+        176,
+        -192
       ],
-      "id": "b5e0bd6b-7a28-4df2-9e9b-441e1005f3ae",
+      "id": "5ba1f57f-2405-4237-b3ee-e0b2f2bc2280",
       "name": "Edit Fields"
     },
     {
@@ -69,16 +69,16 @@
         "promptType": "define",
         "text": "=El usuario envía el siguiente mensaje:\nuser_name: {{ $json.chat_id }}\nmessage: {{ $json.message }}",
         "options": {
-          "systemMessage": "Eres un bot, un asistente de cursos de SENPAI"
+          "systemMessage": "Eres un asistente de cursos de SENPAI. Usa solo el vector store como fuente de informacion. Si no hay informacion, indica no hay datos. Responde siempre en una sola linea y con texto plano compatible con JSON. No uses saltos de linea, tildes, signos de interrogacion iniciales, comillas internas, emojis, guiones, enumeraciones ni palabras demasiado largas. Responde breve para WhatsApp. Mantene siempre un unico mensaje conciso y claro. No agregues encabezados como {\"respuesta\": o {\"text\":"
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
       "position": [
-        -240,
-        -16
+        384,
+        -192
       ],
-      "id": "c8a3f89b-206c-48af-badf-8b85d63fa2f2",
+      "id": "de319bc4-6c99-4718-bf86-969e5680b59a",
       "name": "AI Agent"
     },
     {
@@ -93,31 +93,17 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        -384,
-        192
+        240,
+        16
       ],
-      "id": "eab1c026-5853-4e3f-bae1-3ed695b660e9",
+      "id": "644423d4-9fcb-44d6-8dbc-a0a57031171f",
       "name": "OpenAI Chat Model",
       "credentials": {
         "openAiApi": {
-          "id": "51oN9QrCM5ZMZ1Zu",
+          "id": "dlWZXU67hhJeUpN2",
           "name": "OpenAi account"
         }
       }
-    },
-    {
-      "parameters": {
-        "sessionIdType": "customKey",
-        "sessionKey": "={{ $json.chat_id }}"
-      },
-      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
-      "typeVersion": 1.3,
-      "position": [
-        -240,
-        192
-      ],
-      "id": "96597e12-f9e7-41a9-a831-458d2dd060d3",
-      "name": "Simple Memory"
     },
     {
       "parameters": {
@@ -140,14 +126,117 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        112,
-        -16
+        736,
+        -192
       ],
-      "id": "979d1842-3b43-4f0e-ba4f-15851a17ca0b",
+      "id": "a7f22c38-36bf-425c-bc04-8a8d5c9bb8a3",
       "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "SENPAI Knowledge base",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "infocursos",
+          "mode": "list",
+          "cachedResultName": "infocursos"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        576,
+        32
+      ],
+      "id": "f085fc06-037e-4201-a641-92816039251d",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "gNTzmoEJ3IsCyGJv",
+          "name": "SENPAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        672,
+        240
+      ],
+      "id": "f34caaf5-0389-4853-b2b0-f636b77aa1f1",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "dlWZXU67hhJeUpN2",
+          "name": "OpenAi account"
+        }
+      }
     }
   ],
-  "pinData": {},
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "geekbydefault.app.n8n.cloud",
+            "user-agent": "axios/1.7.9",
+            "content-length": "636",
+            "accept-encoding": "gzip, br",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "208.77.246.85",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "SG",
+            "cf-ray": "998bb9caa0760519-SIN",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "x-forwarded-for": "208.77.246.85, 172.69.165.36",
+            "x-forwarded-host": "geekbydefault.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-45-5cf4858c8f-qprj7",
+            "x-is-trusted": "yes",
+            "x-real-ip": "208.77.246.85"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "event": "messages.upsert",
+            "instance": "n8n_acasas",
+            "data": {
+              "key": {
+                "remoteJid": "34610144692@s.whatsapp.net",
+                "fromMe": true,
+                "id": "3ABBC458B0BE146B1562"
+              },
+              "pushName": "AL34N!X",
+              "status": "SERVER_ACK",
+              "message": {
+                "conversation": "Me das información de cursos?"
+              },
+              "messageType": "conversation",
+              "messageTimestamp": 1762171377,
+              "instanceId": "c7c3a2fb-2a45-47f8-a6c9-1996bbcd356c",
+              "source": "ios"
+            },
+            "destination": "https://geekbydefault.app.n8n.cloud/webhook/bot",
+            "date_time": "2025-11-03T09:02:58.139Z",
+            "sender": "34610144692@s.whatsapp.net",
+            "server_url": "https://evolution-api-production-016d.up.railway.app",
+            "apikey": "28E4615B545A-4358-8105-E8D1A96040D2"
+          },
+          "webhookUrl": "https://geekbydefault.app.n8n.cloud/webhook/bot",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
   "connections": {
     "Webhook": {
       "main": [
@@ -182,17 +271,6 @@
         ]
       ]
     },
-    "Simple Memory": {
-      "ai_memory": [
-        [
-          {
-            "node": "AI Agent",
-            "type": "ai_memory",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "AI Agent": {
       "main": [
         [
@@ -203,17 +281,39 @@
           }
         ]
       ]
+    },
+    "Pinecone Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "d09e0174-f9e8-4f48-af17-22356421f1c3",
+  "versionId": "8eaff360-5063-45a7-9bc1-7ae9bcbacfbe",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "21c01bb5c5f3f34d6e572cf61183391f18fedb8ad88d29888d48ec9c5f89b544"
+    "instanceId": "f5407724cf491da14ebc822933791ea61b7673f4855ed6ef0aaedf8d810c1166"
   },
-  "id": "cbI6KaUJsysAPP6f",
+  "id": "S8ncSHLNd9lSGTaB",
   "tags": []
 }
