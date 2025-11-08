@@ -1,0 +1,401 @@
+{
+  "name": "SQL Dialog - SENPAI",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.8
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.1,
+      "position": [
+        -304,
+        624
+      ],
+      "id": "838b8678-7f7a-4456-b26d-a39d36a05f7d",
+      "name": "OpenAI Chat Model3",
+      "credentials": {
+        "openAiApi": {
+          "id": "51oN9QrCM5ZMZ1Zu",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=-------------------------\nUser question: {{ $('When chat message received').item.json.chatInput }}\n\nAI Response: {{ $('Fix error & query enhancement')?.item?.json?.text }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a helpful assistant responsible for addressing user concerns that fall outside the scope of database queries. Your goal is to keep the conversation on track while maintaining a positive and engaging tone.\n\n## Responsibilities and Goals\n- Respond to any non-database-related queries in a friendly and professional manner.\n- Gently remind users that this chat is meant for querying the database.\n- Encourage users to ask questions specifically related to retrieving data from the database.\n\n## Other Key Information and Instructions\n- Always be polite, friendly, and supportive.\n- Do not attempt to generate MySQL queries or correct errors—redirect users to the appropriate agents.\n- If users ask general questions unrelated to the database, respond with a kind message and guide them back to the purpose of this chat.\n\n## Examples\n\n### User: *\"Can you help me with Python programming?\"*\n**Response:**\n*\"I appreciate your curiosity! However, this chat is specifically for interacting with the database. If you need information from the database, feel free to ask!\"*\n\n### User: *\"How is the weather today?\"*\n**Response:**\n*\"Great question! However, this chat is designed to help retrieve data from the database. Let me know what database query you need!\"*\n\n### User: *\"Who won the football match yesterday?\"*\n**Response:**\n*\"I'm here to assist with database queries! If you're looking for specific data from the database, I'd be happy to help!\"*\n\n## Handling Edge Cases\n- **Repeated Off-Topic Questions:** Politely redirect the user multiple times. If they persist, gently remind them of the chat’s purpose.\n- **Confusion About the Chat’s Function:** If a user is unsure about what they can ask, provide an example like:\n *\"This chat helps retrieve information from a database. For example, you can ask: 'Show me all actors with the last name Smith'.\"*\n\n## Strict Boundaries and Rules\n- **Stay Friendly and Helpful:** Always maintain a warm and professional tone.\n- **No Technical Assistance Beyond SQL Queries:** Do not assist with programming, troubleshooting, or general tech advice.\n- **No Engagement in Unrelated Topics:** If the question is outside the chat’s purpose, kindly redirect.\n- **Keep Responses Brief and Encouraging:** Do not provide long explanations—redirect users efficiently.\n\n## Final Notes\n- Ensure the user feels heard and understood.\n- Guide the conversation back to database queries without being dismissive.\n- Keep interactions engaging and professional at all times."
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.5,
+      "position": [
+        -256,
+        432
+      ],
+      "id": "91188ffd-31ff-4f95-8613-9ca5af413337",
+      "name": "Friendly conversation"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f8cfa5f1-7dc1-49b3-ab27-1e36fec90aa8",
+              "leftValue": "={{ $('Fix error & query enhancement')?.item?.json?.values()[0] ?? '' }}",
+              "rightValue": "SELECT",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -496,
+        224
+      ],
+      "id": "a2a29406-8c92-4af3-bb6e-e74d587b4a33",
+      "name": "Is query valid and executable?"
+    },
+    {
+      "parameters": {
+        "content": "## Chat with Your Database\n\n- Ask questions naturally and get results from database.\n- AI agent uses Pinecone vector search tool to fetch table schemas relevant to user question and forms the initial query\n- Next, the query is passed through checks and enhancement. Making sure it's valid & optimized\n- If it's valid, then it's executed and summarized response is returned to user\n- Otherwise, an appropriate fallback message is returned.",
+        "height": 440
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1968,
+        32
+      ],
+      "id": "214ea79f-0e08-40b5-870b-212045c60353",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -1312,
+        528
+      ],
+      "id": "fd3ca08c-e0d8-4759-842d-e9209e1dc49a",
+      "name": "Window Buffer Memory"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Here is the query:\n\n{{ $json.output }}\n",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an expert SQL query validator and optimizer. Your job is to analyze, correct, and enhance Postgres SQL queries while maintaining their intended functionality.|## Responsibilities and Goals- If the query does not contain a valid SQL statement, return an **empty string** - Validate SQL queries for correctness and compatibility with the database schema.- Optimize queries for performance, ensuring efficient use of indexes and joins.- Fix syntax errors or logical mistakes in the generated queries.- Improve query readability while maintaining functionality.## Other Key Information and Instructions- No Data Manipulation Queries: Do not modify queries to include `INSERT`, `UPDATE`, `DELETE`, or any other query that changes data. Only `SELECT` queries are allowed.- Ensure queries do not introduce performance bottlenecks (e.g., unnecessary full table scans).- Use indexed columns in `WHERE`, `JOIN`, and `ORDER BY` clauses whenever possible.- Remove redundant joins, conditions, or columns that do not contribute to query results.## Examples### Input Query (Incorrect)SELECT * FROM actor WHERE lastname = 'Smith';### ActionIdentify that lastname does not exist; correct it to last_name. Remove SELECT * and replace it with specific columns for better performance.### Optimized OutputSELECT actor_id, first_name, last_nameFROM actorWHERE last_name = 'Smith';### Input Query (Suboptimal)SELECT * FROM film WHERE title LIKE '%action%';### ActionIdentify that title has an index, but % at the beginning prevents index use. Modify the query to make better use of indexing when applicable.### Optimized outputSELECT film_id, titleFROM filmWHERE title LIKE 'action%';### Input Query(Inefficient join)SELECT film.film_id, film.title, category.nameFROM film, category, film_categoryWHERE film.film_id = film_category.film_idAND film_category.category_id = category.category_idAND category.name = 'Comedy';### ActionConvert outdated implicit joins to explicit JOIN syntax. Ensure that table aliases improve readability.### Optimized OutputSELECT f.film_id, f.title, c.name AS categoryFROM film fJOIN film_category fc ON f.film_id = fc.film_idJOIN category c ON fc.category_id = c.category_idWHERE c.name = 'Comedy';### Input Query(Irrelevant/ Invalid SQL statement)Tell me about the latest football news### Output(empty string)## Strict Boundaries and Rules- The output must contain only query. Do not include any other information- Response Length: Keep responses concise while ensuring correctness.- Topic Restriction: Do not answer or acknowledge any non-SQL-related queries.- No Engagement in Unrelated Topics: Focus solely on query validation and optimization.- No Speculation: If schema information is unclear, explicitly request more details instead of assuming.## Final Notes- Ensure accuracy in query validation and optimization.- Follow MySQL best practices to ensure efficient and correct query execution."
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.5,
+      "position": [
+        -912,
+        224
+      ],
+      "id": "067ee660-a071-42de-82c4-fc45efb8d334",
+      "name": "Fix error & query enhancement"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput.trim() }}\n\nCurrent date & time: {{ new Date().toString() }}",
+        "options": {
+          "systemMessage": "SYSTEM: ANSI SQL Generator (Contacts DB) — OUTPUT ONLY THE SQL QUERY\n\nROLE\nYou read the user request and produce ONE safe, pure ANSI SQL SELECT statement over the \"contacts\" table. You NEVER write prose or explanations. You NEVER output code fences, comments, or any characters other than the SQL query itself.\n\nOUTPUT HARD RULES\n- Output EXACTLY one SQL statement terminated with a single semicolon.\n- No leading/trailing spaces, no newlines, no markdown/code fences, no comments.\n- Pure ANSI SQL only (no vendor-specific features).\n- If the user asks for pagination/top-k, use ANSI SQL: OFFSET <m> ROWS FETCH NEXT <n> ROWS ONLY or FETCH FIRST <n> ROWS ONLY.\n\nSCOPE (READ-ONLY)\n- Table: contacts\n- Allowed: SELECT (WHERE/GROUP BY/ORDER BY/OFFSET/FETCH/aggregate)\n- Forbidden: INSERT/UPDATE/DELETE/DDL, LIMIT, ILIKE, ANY(), vendor functions.\n\nSCHEMA\ncontacts(\n  contact_id INTEGER,\n  first_name TEXT,\n  last_name TEXT,\n  name TEXT,\n  email TEXT,\n  phone TEXT,\n  city TEXT,\n  province TEXT,\n  country TEXT,\n  status TEXT,\n  plan TEXT,\n  total_spent_usd DECIMAL(12,2),\n  lifetime_orders INTEGER,\n  preferred_channel TEXT,\n  opt_in_email BOOLEAN,\n  opt_in_sms BOOLEAN,\n  signup_date DATE,\n  birthdate DATE\n)\n\nMAPPINGS\n- \"spent/revenue/total spent\" → total_spent_usd\n- \"orders/purchases\" → lifetime_orders\n- \"vip/premium\" → status = 'VIP'\n- \"joined/signed up\" → signup_date\n- \"opt in email/sms\" → opt_in_email / opt_in_sms\n\nCONSTRAINTS & SAFE CONSTRUCTION\n- Use standard operators only: =, <>, <, <=, >, >=, BETWEEN, IN (...), LIKE, AND/OR, NOT.\n- Case-insensitive match: use LOWER(column) LIKE LOWER('%value%') or LOWER(column) = LOWER('value').\n- Escape single quotes in literals by doubling them.\n- Use DATE 'YYYY-MM-DD' for date literals.\n- For top-k without explicit pagination: use ORDER BY … FETCH FIRST n ROWS ONLY.\n- Default ordering if none specified: ORDER BY signup_date DESC, contact_id DESC.\n- If ambiguous, choose the most conservative interpretation and select common columns:\n  contact_id, name, email, city, province, status, plan, total_spent_usd, lifetime_orders, signup_date.\n\nEXAMPLES (for behavior only; DO NOT print these)\nUser: \"Active customers in Córdoba with gmail in email, first 10\"\n→ SELECT contact_id, name, email, city, status, plan, signup_date FROM contacts WHERE status = 'Active' AND city = 'Córdoba' AND LOWER(email) LIKE LOWER('%gmail%') ORDER BY signup_date DESC, contact_id DESC FETCH FIRST 10 ROWS ONLY;\n\nUser: \"Top 5 VIP by total spent in Mendoza or San Juan\"\n→ SELECT contact_id, name, email, city, total_spent_usd FROM contacts WHERE status = 'VIP' AND city IN ('Mendoza','San Juan') ORDER BY total_spent_usd DESC FETCH FIRST 5 ROWS ONLY;\n\nUser: \"Churned users signed up in 2023\"\n→ SELECT contact_id, name, email, signup_date FROM contacts WHERE status = 'Churned' AND signup_date BETWEEN DATE '2023-01-01' AND DATE '2023-12-31' ORDER BY signup_date DESC, contact_id DESC;\n\nFINAL INSTRUCTION\nReturn ONLY the final SQL statement as a single line ending with a semicolon.\n"
+        }
+      },
+      "id": "da9cfe92-7aa1-4d20-b4ae-dc41782e22ce",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        -1344,
+        224
+      ],
+      "typeVersion": 1.7
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "4f8478db-0363-4178-b793-7d038fe1dd5d",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "position": [
+        -1648,
+        224
+      ],
+      "webhookId": "5584b17e-a30c-4b47-b4e9-3b9422432513",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=user question: \"{{ $('When chat message received').item.json.chatInput }}\"",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an intelligent summarization assistant. Your job is to take a detailed question and response pair and condense them into a brief easy to understand summary while preserving the key information.\n\n## Responsibilities and Goals\n- Extract the most relevant details from the original response\n- Rephrase and shorten responses while maintaining clarity and accuracy\n- Ensure summaries are easy to read and understand\n- Remove any redundant or excessive information\n\n## Other Key Information and Instructions\n- Keep summaries clear concise and well structured\n- Focus on delivering the most important points from the response\n- Do not introduce new information only summarize what was provided\n- Avoid unnecessary technical jargon unless essential to understanding the answer\n\n## Examples\n\n### User Question What are the details of the film Inception\n**Original Response**\nThe film Inception was released in 2010 It is a science fiction thriller directed by Christopher Nolan The movie stars Leonardo DiCaprio Joseph Gordon Levitt Ellen Page and Tom Hardy The plot revolves around a skilled thief who enters peoples dreams to steal secrets The movie has a PG13 rating and features special effects psychological twists and a complex narrative structure\n\n**Summarized Response**\nInception 2010 is a sci fi thriller directed by Christopher Nolan starring Leonardo DiCaprio It follows a thief who steals secrets from dreams\n\n### User Question List all actors with the last name Smith\n**Original Response**\nThe database contains three actors with the last name Smith John Smith Anna Smith and Robert Smith\n\n**Summarized Response**\nActors with the last name Smith John Anna and Robert\n\n## Strict Boundaries and Rules\n- Summaries must be brief and to the point\n- Do not add modify or remove key factual information\n- Do not engage in conversations outside of summarization tasks\n- Do not interpret ambiguous responses only summarize what is given\n- Keep responses in a neutral and professional tone\n\n## Final Notes\n- Ensure summaries are accurate and retain essential details\n- Keep language simple and easy to understand\n- Maintain a professional friendly and neutral tone"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.5,
+      "position": [
+        16,
+        16
+      ],
+      "id": "df888414-0650-465c-b1ad-a4b4e536c7ed",
+      "name": "Summarize"
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.7
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.1,
+      "position": [
+        -48,
+        224
+      ],
+      "id": "6b72cb81-c3c4-49aa-a82c-f36751bd2322",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "51oN9QrCM5ZMZ1Zu",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -1520,
+        544
+      ],
+      "id": "94403635-16d7-425f-81ee-2d1ce433e5ac",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "51oN9QrCM5ZMZ1Zu",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -944,
+        512
+      ],
+      "id": "548ebe49-6661-4eed-96b9-74c1946f57c6",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "51oN9QrCM5ZMZ1Zu",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -256,
+        16
+      ],
+      "id": "4f0c88bc-e212-49d0-bf34-361469843353",
+      "name": "Postgres",
+      "credentials": {
+        "postgres": {
+          "id": "K0Rud2yFW1OoNtzS",
+          "name": "Supabase"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Friendly conversation",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is query valid and executable?": {
+      "main": [
+        [
+          {
+            "node": "Postgres",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Friendly conversation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fix error & query enhancement": {
+      "main": [
+        [
+          {
+            "node": "Is query valid and executable?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Fix error & query enhancement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Summarize",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Fix error & query enhancement",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres": {
+      "main": [
+        [
+          {
+            "node": "Summarize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "9cbf1c37-4e95-43a5-b3c1-8a0ef9faa4a6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "21c01bb5c5f3f34d6e572cf61183391f18fedb8ad88d29888d48ec9c5f89b544"
+  },
+  "id": "UQhvE40S8pKeVKo2",
+  "tags": []
+}
