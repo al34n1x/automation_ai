@@ -17,13 +17,13 @@ Este README te guía paso a paso para integrar n8n con bases de datos tradiciona
     - Regístrate en Supabase y haz New project.
     - Elige Project name, Region y define la Database password (guárdala).
     - Espera a que el proyecto quede Ready.
-2) Obtener credenciales API
-    - Ve a Project Settings → API y anota:
-    - Project URL (base REST, termina en .supabase.co)
-    - anon key (para clientes públicos, lectura con RLS)
-    - service_role key (servidor/confianza; no la expongas en frontends)
-Para conexión SQL (nodo Postgres / clientes):
-    - Settings → Database → Connection info: host, puerto, user postgres, DB postgres, SSL required.
+2) Obtener credenciales Para conexión SQL (nodo Postgres / clientes):
+    - Click **Connect** en el menu superior y copia la siguiente información: (Selecciona el **Transational Pooler**)
+        - Host: `<EL QUE TE DEVUELVA EN LOS DATOS>`
+        - Port: `6543`
+        - User: `<EL QUE TE DEVUELVA EN LOS DATOS>`
+        - Database: `postgres`
+        - Password: (la que definiste al crear el proyecto)
 
 3) Crear tabla contacts (SQL Editor)
     - Abre SQL Editor en la página de proyecto.
@@ -234,104 +234,136 @@ ON CONFLICT (email) DO UPDATE SET
   signup_date = EXCLUDED.signup_date,
   birthdate = EXCLUDED.birthdate;
 COMMIT;
-
-
 ```
-
-## Airtable
-
-1) Crear cuenta en [Airtable](https://airtable.com/)
-
-    - Regístrate en Airtable y entra al panel.
-
-2) Crear una base (usa la plantilla “Product Catalog”)
-
-    - Click Create a base → Start with a template → busca Product Catalog.
-    - Asigna un nombre (ej. Furniture Catalog).
-    - Abre la base y revisa las tablas; normalmente tendrás una tabla tipo Products (o similar).
-
-> Tip: Anota exactamente los nombres de los campos. En Airtable cuentan mayúsculas/minúsculas y espacios (ej.: Unit cost, Total unit sold).
-
-3) Ir al “Builder/Developer Hub”
-
-    - Desde tu avatar (arriba a la derecha) → Developer Hub (a veces aparece como Builder Hub).
-    - Sección Developers → Create new token.
-
-4) Crear un Personal Access Token (PAT)
-
-    - Dale un nombre (ej.: n8n-integration).
-    - Scopes (permisos) necesarios:
-        - data.records:read
-        - data.records:write
-        - schema.bases:read
-    - Access (acceso):
-        - Opción rápida: All Resources (todas las bases de tu workspace).
-        - Opción mínima: Only selected bases y selecciona la base que creaste.
-    - Guárdalo: el token se muestra una sola vez. Trata el PAT como secreto.
-
-
-##  Configuración de workflow en n8n con Airtable
-
-Guía rápida para crear un flujo en **n8n** que consulta una base de **Airtable** (catálogo de muebles).
-
-## Requisitos
-- Cuenta de Airtable y **API Key (Personal Access Token)** activa.
-- Base y tabla existentes (por ejemplo, `Furniture`).
-- Acceso a n8n (self-hosted o Cloud).
-
-## Pasos
-
-1. **Crea un flujo de trabajo nuevo**
-2. **Agrega un disparador de chat**
-3. **Agrega un Agente de IA**
-4. **Adjunta un modelo** (p. ej., OpenAI)
-5. **Agrega una memoria simple**
-6. **Agrega un nodo de Airtable** con los siguientes parámetros:
-   - **Credenciales:** agrega la clave (API Key) que obtuviste de Airtable
-   - **Tool Description:** *se establece automáticamente*
-   - **Resource:** `Record`
-   - **Operation:** `Search`
-   - **Base:** nombre de tu base
-   - **Table:** `Furniture`
-   - **Return All:** activar
-
 ---
 
-### Notas
-- Verifica que el token tenga permisos de **lectura** para la base/tabla seleccionada.
-- Si la tabla usa nombres con espacios, respétalos exactamente (p. ej., `Unit cost`).
+## 🧩 Estructura del flujo
+
+Descarga el flujo de [AQUÍ](./SQL%20Dialog%20-%20SENPAI.json)
+
+1. **When chat message received** – Dispara el flujo cuando llega un mensaje del usuario.  
+2. **AI Agent** – Genera una consulta SQL ANSI basada en el mensaje.  
+3. **Fix error & query enhancement** – Valida y optimiza la consulta.  
+4. **IF** – Evalúa si la consulta comienza con “SELECT”.  
+5. **Postgres** – Ejecuta la consulta válida en la base de datos Supabase.  
+6. **Summarize** – Resume la respuesta en lenguaje natural.  
+7. **Friendly conversation** – Respuesta alternativa si la pregunta no es SQL válida.  
+8. **Window Buffer Memory** – Mantiene el contexto de la conversación.  
 
 
-## n8n - Postgres
+## 💬 Paso 1 – Nodo “When chat message received”
+- Este nodo recibe el texto del usuario y dispara el flujo.  
+- El mensaje queda disponible como variable `chatInput` para los siguientes nodos.
 
-# Configuración de workflow en n8n con Postgres (Supabase)
 
-Guía rápida para crear un flujo en **n8n** que valide una consulta SQL con IA y ejecute la query en **Supabase (Postgres)**.
+## 🧠 Paso 2 – Nodo “AI Agent”
+- Genera la **consulta SQL ANSI segura** a partir del texto del usuario.  
+- Usa el modelo **OpenAI Chat Model** (`gpt-4o-mini`).  
 
-## Requisitos
-- Proyecto en Supabase (URL, `anon key` y/o credenciales de base de datos).
-- Acceso a n8n (self-hosted o Cloud).
-- Un modelo de IA disponible (p. ej., OpenAI).
+### Configuración del agente
+- Solo puede generar **una única sentencia SELECT**.  
+- Debe terminar en `;` y no incluir texto adicional.  
+- La tabla principal es **contacts** con columnas como:  
+  `contact_id, name, email, city, status, plan, total_spent_usd, lifetime_orders, signup_date, ...`
+- Usa mapeos de palabras clave para mayor naturalidad:
+  - “spent” → `total_spent_usd`
+  - “orders” → `lifetime_orders`
+  - “VIP” → `status = 'VIP'`
+  - “joined” → `signup_date`
+- Regla: si el usuario no especifica orden, usar  
+  `ORDER BY signup_date DESC, contact_id DESC`.
 
-## Pasos
+📘 Ejemplo:
+> **Usuario:** “Top 5 VIP por gasto total en Mendoza o San Juan”  
+> **Salida:**  
+> `SELECT contact_id, name, email, city, total_spent_usd FROM contacts WHERE status = 'VIP' AND city IN ('Mendoza','San Juan') ORDER BY total_spent_usd DESC FETCH FIRST 5 ROWS ONLY;`
 
-1. **Agrega un disparador de chat**
-2. **Agrega un Agente de IA** *(debes crear el **system message**)*  
-3. **Agrega un modelo** (p. ej., OpenAI)
-4. **Agrega una memoria simple**
-5. **Conecta la salida al nodo “Basic LLM Chain”**.  
-   Este nodo validará el SQL producido por el primer agente. *(debes crear el **system message** para la validación)*
-6. **Agrega un modelo** al “Basic LLM Chain”
-7. **Crea un nodo IF** para comprobar si la consulta SQL es válida
-8. **Rama Válida** → conecta a un **nodo Postgres** con estos ajustes:
-   - **Credentials:** tus credenciales de **Supabase**
-   - **Operation:** `Execute Query`
-   - **Query:** `{{ $json.text }}`
-9. **Agrega otro nodo “Basic LLM Chain”** que tome la salida del nodo Postgres y devuelva el resultado en formato legible. *(debes crear el **system message**)*
-10. **Agrega un modelo** a ese nodo “Basic LLM Chain”
-11. **Rama Inválida del IF:** define un mensaje fijo o agrega otro “Basic LLM Chain” para devolver un error clara y amablemente.
 
----
+## 🔍 Paso 3 – Nodo “Fix error & query enhancement”
+- Este nodo actúa como **validador y optimizador SQL para PostgreSQL**.  
+- Usa el modelo **OpenAI Chat Model1**.  
+
+### Configuración del prompt
+- Acepta una consulta SQL y la analiza.  
+- Si la consulta no es válida, devuelve `""`.  
+- Si es válida, devuelve **solo la query optimizada**, en una sola línea.  
+- Mejora `JOIN`, `WHERE`, y `ORDER BY`.  
+- Reemplaza `SELECT *` por columnas específicas.  
+- Usa `ILIKE` o `LOWER()` para búsquedas case-insensitive.  
+- Usa `LIMIT` para paginación (PostgreSQL-optimized).  
+- Nunca devuelve `INSERT`, `UPDATE` ni `DELETE`.
+
+
+## 🧩 Paso 4 – Nodo “IF – Is query valid and executable?”
+- Evalúa si la salida del validador comienza con `"SELECT"`.  
+- Expresión usada:
+  ```js
+  {{ $('Fix error & query enhancement')?.item?.json?.values()[0] ?? '' }}
+  ```
+- Si **true**, pasa a ejecutar la consulta en Postgres.  
+- Si **false**, envía el mensaje al nodo *Friendly conversation*.
+
+
+## 🧮 Paso 5 – Nodo “Postgres”
+- Ejecuta la consulta optimizada sobre tu base de datos Supabase.  
+- Configuración:
+  - **Operation:** Execute Query  
+  - **Query:**  
+    ```js
+    {{ $json.text }}
+    ```
+  - **Credentials:** Supabase  
+
+> 🔒 Se recomienda usar un usuario con permisos de solo lectura y activar políticas RLS en Supabase.
+
+
+## 🪄 Paso 6 – Nodo “Summarize”
+- Resume la respuesta SQL para devolver una explicación simple.  
+- Usa el modelo **OpenAI Chat Model2**.  
+- Toma la pregunta original (`chatInput`) y el resultado de la consulta.
+
+Ejemplo:
+> **Usuario:** “Top 5 VIP por gasto total en Mendoza o San Juan”  
+> **Respuesta resumida:** “Los 5 clientes VIP con mayor gasto en Mendoza o San Juan son Ana López, Pedro Díaz, …”
+
+
+## 💡 Paso 7 – Nodo “Friendly conversation”
+- Se activa si la entrada **no genera una SQL válida**.  
+- Usa el modelo **OpenAI Chat Model3**.  
+- Devuelve mensajes amables que redirigen al propósito del chat.
+
+Ejemplo:
+> “Este chat está diseñado para consultar la base de datos. ¿Querés buscar clientes por ciudad o por plan?”
+
+
+## 🧠 Paso 8 – Nodo “Window Buffer Memory”
+- Mantiene el contexto del chat entre mensajes consecutivos.  
+- Permite que el asistente recuerde preguntas previas dentro de la sesión.
+
+
+## 🚀 Prueba del flujo
+1. Ejecutá el workflow.  
+2. En la consola de chat escribí:
+   ```
+   Clientes activos en Córdoba con gmail, primeros 10
+   ```
+   → Debería devolver los resultados resumidos.  
+3. Probá un mensaje fuera de contexto:
+   ```
+   ¿Cómo está el clima hoy?
+   ```
+   → El flujo debería responder con el mensaje educativo del nodo *Friendly conversation*.
+
+## 🧰 Troubleshooting
+
+| Problema | Causa probable | Solución |
+|-----------|----------------|-----------|
+| **No testing function found** | n8n no tiene test automático para credenciales Postgres | Ignorar el aviso |
+| **Couldn’t connect with these settings** | SSL o puerto incorrecto | Revisar `sslmode=require` y puerto `5432` |
+| **Query vacía** | El validador devolvió cadena vacía | Verificar que la pregunta sea SQL válida |
+| **Resultados vacíos** | Tabla o columnas diferentes en tu DB | Ajustar nombres en el prompt del agente |
+
+
 
 ### Notas
 - Los **system messages** recomendados:

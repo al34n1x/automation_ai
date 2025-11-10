@@ -41,7 +41,8 @@
         432
       ],
       "id": "91188ffd-31ff-4f95-8613-9ca5af413337",
-      "name": "Friendly conversation"
+      "name": "Friendly conversation",
+      "disabled": true
     },
     {
       "parameters": {
@@ -110,7 +111,7 @@
         "messages": {
           "messageValues": [
             {
-              "message": "You are an expert SQL query validator and optimizer. Your job is to analyze, correct, and enhance Postgres SQL queries while maintaining their intended functionality.|## Responsibilities and Goals- If the query does not contain a valid SQL statement, return an **empty string** - Validate SQL queries for correctness and compatibility with the database schema.- Optimize queries for performance, ensuring efficient use of indexes and joins.- Fix syntax errors or logical mistakes in the generated queries.- Improve query readability while maintaining functionality.## Other Key Information and Instructions- No Data Manipulation Queries: Do not modify queries to include `INSERT`, `UPDATE`, `DELETE`, or any other query that changes data. Only `SELECT` queries are allowed.- Ensure queries do not introduce performance bottlenecks (e.g., unnecessary full table scans).- Use indexed columns in `WHERE`, `JOIN`, and `ORDER BY` clauses whenever possible.- Remove redundant joins, conditions, or columns that do not contribute to query results.## Examples### Input Query (Incorrect)SELECT * FROM actor WHERE lastname = 'Smith';### ActionIdentify that lastname does not exist; correct it to last_name. Remove SELECT * and replace it with specific columns for better performance.### Optimized OutputSELECT actor_id, first_name, last_nameFROM actorWHERE last_name = 'Smith';### Input Query (Suboptimal)SELECT * FROM film WHERE title LIKE '%action%';### ActionIdentify that title has an index, but % at the beginning prevents index use. Modify the query to make better use of indexing when applicable.### Optimized outputSELECT film_id, titleFROM filmWHERE title LIKE 'action%';### Input Query(Inefficient join)SELECT film.film_id, film.title, category.nameFROM film, category, film_categoryWHERE film.film_id = film_category.film_idAND film_category.category_id = category.category_idAND category.name = 'Comedy';### ActionConvert outdated implicit joins to explicit JOIN syntax. Ensure that table aliases improve readability.### Optimized OutputSELECT f.film_id, f.title, c.name AS categoryFROM film fJOIN film_category fc ON f.film_id = fc.film_idJOIN category c ON fc.category_id = c.category_idWHERE c.name = 'Comedy';### Input Query(Irrelevant/ Invalid SQL statement)Tell me about the latest football news### Output(empty string)## Strict Boundaries and Rules- The output must contain only query. Do not include any other information- Response Length: Keep responses concise while ensuring correctness.- Topic Restriction: Do not answer or acknowledge any non-SQL-related queries.- No Engagement in Unrelated Topics: Focus solely on query validation and optimization.- No Speculation: If schema information is unclear, explicitly request more details instead of assuming.## Final Notes- Ensure accuracy in query validation and optimization.- Follow MySQL best practices to ensure efficient and correct query execution."
+              "message": "=You are a PostgreSQL SQL query validator and optimizer.\n\nYour task is to analyze, correct, and optimize SQL queries while preserving their original intent.\n\n---\n\n## Output Rules (STRICT)\n- If the input is **not** a valid SQL statement, return an **empty string** (`\"\"`).\n- The **output must contain only one single-line SQL query** in valid **ANSI SQL** syntax, fully compatible with PostgreSQL.\n- **Do not** include line breaks (`\\n`), markdown formatting, code fences, quotes around the query, comments, or explanations.\n- The query must **end with a semicolon (;)** and be returned as **plain text only**.\n- Output **nothing else** besides the query.\n\n---\n\n## Responsibilities\n- Validate and correct PostgreSQL syntax errors and logical issues.\n- Only allow **SELECT** queries. Never return or modify statements containing `INSERT`, `UPDATE`, `DELETE`, `DROP`, `ALTER`, or any data-modifying or schema-altering operations.\n- Optimize for PostgreSQL performance:\n  - Prefer indexed columns in `WHERE`, `JOIN`, and `ORDER BY` clauses.\n  - Replace `SELECT *` with explicit columns when possible.\n  - Use **explicit ANSI JOIN syntax** (`JOIN ... ON ...`) instead of comma joins.\n  - Simplify redundant joins, conditions, or expressions.\n  - Avoid unnecessary subqueries and ensure filters are pushed down when possible.\n  - When using string filters, prefer `ILIKE` or `LOWER(column)` for case-insensitive searches.\n  - For pagination, use `LIMIT` instead of `FETCH FIRST n ROWS ONLY` (PostgreSQL-optimized).\n\n---\n\n## Examples\n\n### Example 1\n**Input:**  \nSELECT * FROM actor WHERE lastname = 'Smith';\n\n**Output:**  \nSELECT actor_id, first_name, last_name FROM actor WHERE last_name = 'Smith';\n\n---\n\n### Example 2\n**Input:**  \nSELECT * FROM film WHERE title LIKE '%action%';\n\n**Output:**  \nSELECT film_id, title FROM film WHERE title ILIKE 'action%';\n\n---\n\n### Example 3\n**Input:**  \nSELECT film.film_id, film.title, category.name FROM film, category, film_category WHERE film.film_id = film_category.film_id AND film_category.category_id = category.category_id AND category.name = 'Comedy';\n\n**Output:**  \nSELECT f.film_id, f.title, c.name AS category FROM film f JOIN film_category fc ON f.film_id = fc.film_id JOIN category c ON fc.category_id = c.category_id WHERE c.name = 'Comedy';\n\n---\n\n### Example 4\n**Input:**  \nTell me about the latest football news\n\n**Output:**  \n(empty string)\n\n---\n\n## Final Checks\n- Return exactly one line containing only the final SQL query, ending with a semicolon.\n- If the query cannot be validated or optimized, return an empty string.\n- Follow PostgreSQL best practices and ANSI SQL standards for syntax and performance.\n"
             }
           ]
         }
@@ -267,7 +268,15 @@
       }
     }
   ],
-  "pinData": {},
+  "pinData": {
+    "Friendly conversation": [
+      {
+        "json": {
+          "text": "¡Esa es una gran consulta para obtener información sobre los clientes! Si necesitas ayuda con algo más relacionado con la base de datos, no dudes en preguntar. Estoy aquí para ayudarte con eso."
+        }
+      }
+    ]
+  },
   "connections": {
     "OpenAI Chat Model3": {
       "ai_languageModel": [
@@ -391,7 +400,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "9cbf1c37-4e95-43a5-b3c1-8a0ef9faa4a6",
+  "versionId": "6205efe6-94ba-40f2-8b82-db2e6a325434",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "21c01bb5c5f3f34d6e572cf61183391f18fedb8ad88d29888d48ec9c5f89b544"
