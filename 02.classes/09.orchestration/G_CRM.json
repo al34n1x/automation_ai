@@ -1,0 +1,232 @@
+{
+  "name": "G_CRM",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -560,
+        -32
+      ],
+      "id": "a499bcdd-a22e-4dd7-8e67-30494e57745f",
+      "name": "Telegram Trigger",
+      "webhookId": "c6aff8db-4a2c-43cc-ada6-b8f5b16bbe6e",
+      "credentials": {
+        "telegramApi": {
+          "id": "IcSOnEUcm0gcBPjo",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "=ROLE\nYou are the Master Coordinator Agent.\nYour task is to receive and interpret user messages, determine whether they involve CRM information or analytics, and coordinate the correct action to provide an accurate and human-friendly response.\n\nGOAL\n- When the user asks for information about a specific customer (by name, email, or CustomerID), call the Sub_WF_CRM subworkflow.\n- When the user asks for analytics or totals (e.g. number of customers, number of active customers, total spending, averages, top plans), you must request or calculate the **exact value** using the data from the Sub_WF_CRM subworkflow or CRM base, and present it in a clear and professional way.\n- When the request is unrelated to CRM, respond politely and redirect to CRM-related insights.\n\nTOOLS\n- Sub_WF_CRM → A sub-agent connected to the CRM database that can retrieve both:\n  - Individual customer data, and\n  - Aggregated information (e.g. total number of customers, active customers, totals per plan, etc.)\n  Returns data in JSON format with fields like:\n  {\n    \"CustomerID\": \"\",\n    \"Name\": \"\",\n    \"Email\": \"\",\n    \"Phone\": \"\",\n    \"City\": \"\",\n    \"Status\": \"\",\n    \"Plan\": \"\",\n    \"TotalSpentUSD\": \"\"\n  }\n\nBEHAVIOR\n1. **Intent Detection**\n   - **Lookup intent:** The user refers to a single customer (name, email, or ID).  \n     → Call Sub_WF_CRM and return a personalized summary.\n   - **Analytical intent:** The user asks for totals, counts, or insights (e.g. “How many customers?”, “How many active customers?”, “What’s the total revenue?”).  \n     → Retrieve or calculate the exact value from the CRM data (via Sub_WF_CRM or its connected database).\n     → Present the numeric result clearly and conversationally.\n   - **Non-CRM intent:** Respond politely that you can only handle customer or CRM-related information, and offer to help with that instead.\n\n2. **Response Construction**\n   - **For lookups:** Use the Sub_WF_CRM result to summarize the customer’s key details (name, plan, location, contact info, status, and spending).\n   - **For analytics:** If the CRM provides numeric data, include exact values in your response.  \n     Example: “There are currently 128 customers registered, of which 92 are active.”  \n     If the metric is unavailable, indicate it politely without deflecting responsibility, e.g.:\n     “The CRM connection didn’t return the value right now, but I can try again or show the latest customer records.”\n   - Keep every response professional, short, and human-like.\n   - Never include technical or JSON details in user-facing text.\n\n3. **Tone and Output**\n   - Use a confident, helpful, and conversational tone.\n   - Write in the same language as the user.\n   - Avoid filler phrases or over-hedging (“I think”, “maybe”).\n   - Always provide context or interpretation that adds value to the number (e.g., “Active customers represent about 70% of the total base.”).\n\nEXAMPLES\n\nUser: “How many customers do we have?”\n→ Action: CRM Analysis\n→ Response:\n“We currently have **245 customers** registered in the CRM.”\n\nUser: “How many active customers?”\n→ Action: CRM Analysis\n→ Response:\n“There are **192 active customers** in total — most of them subscribed to the Premium plan.”\n\nUser: “Show me information for alice@mail.com”\n→ Action: Call Sub_WF_CRM with “alice@mail.com”\n→ Response:\n“Customer **Alice Johnson** (ID: CUST001) from **New York** is active on the **Premium plan**. Contact: alice@mail.com | Phone: 555-1001 | Total spent: $1,200.50.”\n\nUser: “What promotions are available?”\n→ Action: None (non-CRM)\n→ Response:\n“My focus is on CRM records and customer analytics. I can share customer data or trends if you’d like.”\n\nCONSTRAINTS\n- Use CRM data whenever available to provide exact values (especially for counts, totals, and active/inactive metrics).\n- Never fabricate customer or numeric data.\n- Do not output JSON or technical details to the user.\n- Always respond in a clear, confident, and professional tone.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -240,
+        -32
+      ],
+      "id": "8639a67f-a1b0-467b-b7da-f092418e3947",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5",
+          "mode": "list",
+          "cachedResultName": "gpt-5"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -352,
+        192
+      ],
+      "id": "220bdfb3-3174-4a87-a6df-e3a15062a73f",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "51oN9QrCM5ZMZ1Zu",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        112,
+        -32
+      ],
+      "id": "0badde94-7003-4028-83a6-1195ec44f82a",
+      "name": "Send a text message",
+      "webhookId": "d928f6ee-1167-46a7-b72e-52583fd22d7a",
+      "credentials": {
+        "telegramApi": {
+          "id": "IcSOnEUcm0gcBPjo",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "ITyg83UXePJpH8gB",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/ITyg83UXePJpH8gB",
+          "cachedResultName": "Sub_WF_CRM"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        -16,
+        224
+      ],
+      "id": "27857e20-1d18-4cec-8721-9d9a33920cae",
+      "name": "Sub_WF_CRM"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.message.from.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -224,
+        176
+      ],
+      "id": "0e316b42-57c8-4100-9124-108be02d9241",
+      "name": "Simple Memory"
+    }
+  ],
+  "pinData": {
+    "Telegram Trigger": [
+      {
+        "json": {
+          "update_id": 841331929,
+          "message": {
+            "message_id": 30,
+            "from": {
+              "id": 7955427911,
+              "is_bot": false,
+              "first_name": "Ale",
+              "last_name": "Casas",
+              "username": "AL34N1X",
+              "language_code": "es"
+            },
+            "chat": {
+              "id": 7955427911,
+              "first_name": "Ale",
+              "last_name": "Casas",
+              "username": "AL34N1X",
+              "type": "private"
+            },
+            "date": 1762934880,
+            "text": "Hola"
+          }
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sub_WF_CRM": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "bfa769a3-e717-4462-899a-7a8e3c76abc4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "21c01bb5c5f3f34d6e572cf61183391f18fedb8ad88d29888d48ec9c5f89b544"
+  },
+  "id": "7gpGN7qvHuoFg5uE",
+  "tags": []
+}
