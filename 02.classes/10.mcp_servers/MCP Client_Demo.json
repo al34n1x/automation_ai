@@ -1,0 +1,150 @@
+{
+  "name": "MCP Client_Demo",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -288,
+        -96
+      ],
+      "id": "a9c51fca-7873-4f2b-9e4b-38a9b9243eed",
+      "name": "When chat message received",
+      "webhookId": "a8c8ed65-a05b-442a-ac1a-70aeb788ad3b"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a helpful assistant"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -80,
+        -96
+      ],
+      "id": "bbbb227d-4828-43cd-94e3-3a04c7dd5d9d",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -224,
+        128
+      ],
+      "id": "64da643d-ece8-487c-b06b-52ef0b51de31",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "51oN9QrCM5ZMZ1Zu",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -80,
+        128
+      ],
+      "id": "c17f8773-e0ae-4bcf-8903-33c1f03c8c78",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "https://geekbydefault.co/mcp/agent",
+        "authentication": "bearerAuth",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.1,
+      "position": [
+        192,
+        128
+      ],
+      "id": "5aa3aa7c-0338-427f-9fc1-dde0f77422d4",
+      "name": "MCP Client",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "cQgWzVkJFm4Pmqne",
+          "name": "MCP Server Bearer"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Client": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "35c97c8d-859f-4fbd-8726-46edc7c0d3e9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "21c01bb5c5f3f34d6e572cf61183391f18fedb8ad88d29888d48ec9c5f89b544"
+  },
+  "id": "AoSDU9rXZDqDFZB2",
+  "tags": []
+}
