@@ -32,7 +32,7 @@ Este documento explica paso a paso cómo desplegar **Evolution API** en **Railwa
 ---
 
 ### 3. Seleccionar el template de **Evolution API**
-- Busca la plantilla **“Evolution API”** en la galería de Railway.
+- Busca la plantilla **“Evolution API”** en la galería de Railway o utiliza el siguiente [Template](https://railway.com/deploy/pAiAj7?referralCode=btdEUY&utm_medium=integration&utm_source=template&utm_campaign=generic)
 - Esta plantilla ya está configurada como **gateway de WhatsApp** mediante WebSockets y REST API.
 - Haz clic en **Use Template** para crear el proyecto.
 
