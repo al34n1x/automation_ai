@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -93,7 +94,8 @@
             letter-spacing: 0.5px;
         }
 
-        select, input {
+        select,
+        input {
             padding: 12px 15px;
             border: 2px solid #e2e8f0;
             border-radius: 10px;
@@ -102,7 +104,8 @@
             background: white;
         }
 
-        select:focus, input:focus {
+        select:focus,
+        input:focus {
             outline: none;
             border-color: #4facfe;
             box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
@@ -223,17 +226,18 @@
                 grid-template-columns: 1fr;
                 gap: 10px;
             }
-            
+
             .form-grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .header h1 {
                 font-size: 2em;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
@@ -355,18 +359,20 @@
     <script>
         // Datos de precios LLM
         const llmPrices = {
+            'gpt-5.3': { input: 1.25, output: 10.00, name: 'GPT-5.3' },
             'gpt-5': { input: 1.25, output: 10.00, name: 'GPT-5' },
             'gpt-4o': { input: 2.50, output: 10.00, name: 'GPT-4o' },
             'gpt-4o-mini': { input: 0.15, output: 0.60, name: 'GPT-4o Mini' },
-            'gpt-3.5-turbo': { input: 0.50, output: 1.50, name: 'GPT-3.5 Turbo' },
-            'claude-4.1-opus': { input: 15, output: 75, name: 'Claude-4.1-opus' },
-            'claude-4-sonnet': { input: 3.00, output: 15.00, name: 'Claude 4 Sonnet < 200K tokens' },
-            'claude-4-sonnet_200': { input: 6.00, output: 22.50, name: 'Claude 4 Sonnet > 200K tokens' },
+            'claude-4.6-opus': { input: 5.00, output: 25.00, name: 'Claude 4.6 Opus < 200K tokens' },
+            'claude-4.6-opus_200': { input: 10.00, output: 37.50, name: 'Claude 4.6 Opus > 200K tokens' },
+            'claude-4.6-sonnet': { input: 3.00, output: 15.00, name: 'Claude 4.6 Sonnet' },
             'claude-3.5-haiku': { input: 0.80, output: 4, name: 'Claude 3.5 Haiku' },
-            'claude-3-opus': { input: 15.00, output: 75.00, name: 'Claude 3 Opus' },
-            'gemini-2.5-pro': { input: 1.25, output: 10.00, name: 'Gemini 1.5 Pro < 200K tokens' },
-            'gemini-2.5-pro_200': { input: 2.50, output: 15.00, name: 'Gemini 1.5 Pro > 200K tokens' },
-            'gemini-2.5-flash': { input: 0.30, output: 2.50, name: 'Gemini 1.5 Flash' },
+            'gemini-3-pro': { input: 2.00, output: 12.00, name: 'Gemini 3 Pro < 200K tokens' },
+            'gemini-3-pro_200': { input: 4.00, output: 18.00, name: 'Gemini 3 Pro > 200K tokens' },
+            'gemini-3-flash': { input: 0.50, output: 3.00, name: 'Gemini 3 Flash' },
+            'gemini-2.5-pro': { input: 1.25, output: 10.00, name: 'Gemini 2.5 Pro < 200K tokens' },
+            'gemini-2.5-pro_200': { input: 2.50, output: 15.00, name: 'Gemini 2.5 Pro > 200K tokens' },
+            'gemini-2.5-flash': { input: 0.30, output: 2.50, name: 'Gemini 2.5 Flash' },
             'mistral-small': { input: 0.20, output: 0.60, name: 'Mistral Small' },
             'mistral-large': { input: 2.00, output: 6.00, name: 'Mistral Large' },
             'command-r': { input: 0.15, output: 0.60, name: 'Cohere Command R' },
@@ -392,9 +398,9 @@
                         <label>Modelo LLM</label>
                         <select onchange="updateModelCost('${modelId}')">
                             <option value="">Seleccionar modelo...</option>
-                            ${Object.entries(llmPrices).map(([key, model]) => 
-                                `<option value="${key}">${model.name} ($${model.input}/$${model.output} per 1M tokens)</option>`
-                            ).join('')}
+                            ${Object.entries(llmPrices).map(([key, model]) =>
+                `<option value="${key}">${model.name} ($${model.input}/$${model.output} per 1M tokens)</option>`
+            ).join('')}
                         </select>
                     </div>
                     <div class="form-group">
@@ -423,11 +429,11 @@
             const row = document.getElementById(modelId);
             const btn = row.querySelector('.toggle-btn');
             const enabled = btn.dataset.enabled === 'true';
-            
+
             btn.dataset.enabled = !enabled;
             btn.textContent = enabled ? 'INACTIVO' : 'ACTIVO';
             btn.className = enabled ? 'toggle-btn disabled' : 'toggle-btn';
-            
+
             updateModelCost(modelId);
             updateTotals();
         }
@@ -439,13 +445,13 @@
             const outputTokens = parseFloat(row.querySelectorAll('input')[1].value) || 0;
             const costDisplay = row.querySelector('.cost-display');
             const enabled = row.querySelector('.toggle-btn').dataset.enabled === 'true';
-            
+
             if (!enabled || !select.value) {
                 costDisplay.textContent = '$0/mes';
                 updateTotals();
                 return;
             }
-            
+
             const model = llmPrices[select.value];
             if (model) {
                 const inputCost = inputTokens * model.input;
@@ -453,7 +459,7 @@
                 const totalCost = inputCost + outputCost;
                 costDisplay.textContent = `$${totalCost.toFixed(2)}/mes`;
             }
-            
+
             updateTotals();
         }
 
@@ -461,10 +467,10 @@
             const type = document.getElementById('n8nType').value;
             const executions = parseInt(document.getElementById('executions').value) || 0;
             const provider = document.getElementById('infraProvider').value;
-            
+
             const executionsGroup = document.getElementById('executionsGroup');
             const infraGroup = document.getElementById('infraGroup');
-            
+
             let n8nCost = 0;
             let infraCost = 0;
             let maintenanceCost = 0;
@@ -472,8 +478,8 @@
             if (type.startsWith('cloud')) {
                 executionsGroup.style.display = 'block';
                 infraGroup.style.display = 'none';
-                
-                switch(type) {
+
+                switch (type) {
                     case 'cloud-starter':
                         n8nCost = 24;
                         if (executions > 2500) {
@@ -493,13 +499,13 @@
             } else if (type.startsWith('self')) {
                 executionsGroup.style.display = 'none';
                 infraGroup.style.display = 'block';
-                
+
                 if (provider && infraPrices[provider]) {
                     const tier = type.split('-')[1];
                     infraCost = infraPrices[provider][tier] || 0;
-                    
+
                     // Costos de mantenimiento para self-hosted
-                    switch(tier) {
+                    switch (tier) {
                         case 'basic':
                             maintenanceCost = 50;
                             break;
@@ -512,11 +518,11 @@
                     }
                 }
             }
-            
+
             document.getElementById('n8nCost').textContent = `Costo n8n: $${n8nCost}/mes`;
             document.getElementById('infraCost').textContent = `Costo Infraestructura: $${infraCost}/mes`;
             document.getElementById('maintenanceCost').textContent = `Mantenimiento: $${maintenanceCost}/mes`;
-            
+
             updateTotals();
         }
 
@@ -525,10 +531,10 @@
             const devopsRate = parseInt(document.getElementById('devopsRate').value) || 0;
             const devHours = parseInt(document.getElementById('devHours').value) || 0;
             const devRate = parseInt(document.getElementById('devRate').value) || 0;
-            
+
             const personalCost = (devopsHours * devopsRate) + (devHours * devRate);
             document.getElementById('personalCost').textContent = `Costo Personal: $${personalCost}/mes`;
-            
+
             updateTotals();
         }
 
@@ -540,26 +546,26 @@
                 const cost = parseFloat(costText.replace('$', '').replace('/mes', '')) || 0;
                 totalLLM += cost;
             });
-            
+
             // Calcular total infraestructura
             const n8nCostText = document.getElementById('n8nCost').textContent;
             const infraCostText = document.getElementById('infraCost').textContent;
             const maintenanceCostText = document.getElementById('maintenanceCost').textContent;
-            
+
             const n8nCost = parseFloat(n8nCostText.replace(/[^0-9.]/g, '')) || 0;
             const infraCost = parseFloat(infraCostText.replace(/[^0-9.]/g, '')) || 0;
             const maintenanceCost = parseFloat(maintenanceCostText.replace(/[^0-9.]/g, '')) || 0;
-            
+
             const totalInfra = n8nCost + infraCost + maintenanceCost;
-            
+
             // Calcular total personal
             const personalCostText = document.getElementById('personalCost').textContent;
             const totalPersonal = parseFloat(personalCostText.replace(/[^0-9.]/g, '')) || 0;
-            
+
             // Totales
             const totalMonthly = totalLLM + totalInfra + totalPersonal;
             const totalYearly = totalMonthly * 12;
-            
+
             // Actualizar display
             document.getElementById('totalLLM').textContent = `$${totalLLM.toFixed(2)}`;
             document.getElementById('totalInfra').textContent = `$${totalInfra.toFixed(2)}`;
@@ -570,7 +576,7 @@
 
         function exportToCSV() {
             let csv = 'Categoría,Descripción,Costo Mensual,Costo Anual\n';
-            
+
             // Modelos LLM
             document.querySelectorAll('.model-row').forEach(row => {
                 const select = row.querySelector('select');
@@ -581,26 +587,26 @@
                     csv += `LLM,${modelName},$${cost.toFixed(2)},$${(cost * 12).toFixed(2)}\n`;
                 }
             });
-            
+
             // n8n e infraestructura
             const n8nType = document.getElementById('n8nType').options[document.getElementById('n8nType').selectedIndex]?.text || 'No seleccionado';
             const n8nCost = parseFloat(document.getElementById('n8nCost').textContent.replace(/[^0-9.]/g, '')) || 0;
             const infraCost = parseFloat(document.getElementById('infraCost').textContent.replace(/[^0-9.]/g, '')) || 0;
             const maintenanceCost = parseFloat(document.getElementById('maintenanceCost').textContent.replace(/[^0-9.]/g, '')) || 0;
-            
+
             if (n8nCost > 0) csv += `n8n,${n8nType},$${n8nCost.toFixed(2)},$${(n8nCost * 12).toFixed(2)}\n`;
             if (infraCost > 0) csv += `Infraestructura,Hosting,$${infraCost.toFixed(2)},$${(infraCost * 12).toFixed(2)}\n`;
             if (maintenanceCost > 0) csv += `Mantenimiento,Personal,$${maintenanceCost.toFixed(2)},$${(maintenanceCost * 12).toFixed(2)}\n`;
-            
+
             // Personal
             const personalCost = parseFloat(document.getElementById('personalCost').textContent.replace(/[^0-9.]/g, '')) || 0;
             if (personalCost > 0) csv += `Personal,Desarrollo y Mantenimiento,$${personalCost.toFixed(2)},$${(personalCost * 12).toFixed(2)}\n`;
-            
+
             // Totales
             const totalMonthly = parseFloat(document.getElementById('totalMonthly').textContent.replace('$', '')) || 0;
             const totalYearly = parseFloat(document.getElementById('totalYearly').textContent.replace('$', '')) || 0;
             csv += `\nTOTAL,Total General,$${totalMonthly.toFixed(2)},$${totalYearly.toFixed(2)}`;
-            
+
             // Descargar archivo
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
@@ -625,24 +631,25 @@
                 document.getElementById('devopsRate').value = '60';
                 document.getElementById('devHours').value = '0';
                 document.getElementById('devRate').value = '50';
-                
+
                 document.getElementById('executionsGroup').style.display = 'none';
                 document.getElementById('infraGroup').style.display = 'none';
-                
+
                 modelCounter = 0;
                 updateN8nCosts();
                 updatePersonalCosts();
                 updateTotals();
-                
+
                 addModel(); // Agregar un modelo por defecto
             }
         }
 
         // Inicializar con un modelo por defecto
-        window.onload = function() {
+        window.onload = function () {
             addModel();
             updatePersonalCosts();
         };
     </script>
 </body>
+
 </html>

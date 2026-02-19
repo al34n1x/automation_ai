@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,47 +10,251 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
-    :root{
-      --primaryA:#4facfe; --primaryB:#00f2fe; --ink:#0f172a; --muted:#334155; --card:#f8fafc; --stroke:#e2e8f0;
+    :root {
+      --primaryA: #4facfe;
+      --primaryB: #00f2fe;
+      --ink: #0f172a;
+      --muted: #334155;
+      --card: #f8fafc;
+      --stroke: #e2e8f0;
     }
-    *{box-sizing:border-box}
-    body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;margin:0;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:var(--ink)}
-    .shell{max-width:1400px;margin:auto;padding:20px}
-    .card{background:#fff;border:1px solid var(--stroke);border-radius:16px;box-shadow:0 18px 40px rgba(0,0,0,.08)}
-    header{background:linear-gradient(135deg,var(--primaryA),var(--primaryB));color:#fff;padding:28px;border-radius:16px 16px 0 0}
-    header h1{margin:0 0 6px;font-weight:800;font-size:32px}
-    header p{margin:0;opacity:.9}
-    .pad{padding:28px}
-    h2{font-size:20px;margin:0 0 16px;color:#0b1220}
-    .sub{font-size:12px;color:#475569;margin-top:-6px;margin-bottom:16px}
-    .grid{display:grid;gap:18px}
-    .g-2{grid-template-columns:repeat(2,minmax(0,1fr))}
-    .g-3{grid-template-columns:repeat(3,minmax(0,1fr))}
-    .g-4{grid-template-columns:repeat(4,minmax(0,1fr))}
-    @media (max-width:1024px){.g-2,.g-3,.g-4{grid-template-columns:1fr}}
-    label{font-size:12px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;color:#334155;margin-bottom:6px;display:block}
-    input,select{width:100%;padding:12px 12px;border:2px solid var(--stroke);border-radius:10px;font-size:14px;outline:none;background:#fff}
-    input:focus,select:focus{border-color:var(--primaryA);box-shadow:0 0 0 3px rgba(79,172,254,.12)}
-    .row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 80px;gap:12px;align-items:end;border:1px solid var(--stroke);padding:14px;border-radius:12px;background:#fff}
-    .row .cost{background:#f1f5f9;text-align:center;padding:10px;border-radius:8px;font-weight:700}
-    .row .toggle{border:none;border-radius:16px;padding:8px 12px;font-weight:700;text-transform:uppercase;cursor:pointer}
-    .toggle.on{background:#16a34a;color:#fff}
-    .toggle.off{background:#94a3b8;color:#fff}
-    .btn{background:linear-gradient(135deg,var(--primaryA),var(--primaryB));color:#fff;border:none;border-radius:22px;padding:10px 18px;font-weight:700;cursor:pointer}
-    .btn.secondary{background:#0ea5e9}
-    .kpi{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-radius:14px;padding:18px}
-    .kpi h3{margin:0 0 6px;font-size:12px;opacity:.9;text-transform:uppercase;letter-spacing:.6px}
-    .kpi .v{font-size:26px;font-weight:800}
-    .section{border:2px solid var(--stroke);background:var(--card);padding:20px;border-radius:14px}
-    .muted{color:#475569}
-    .toolbar{display:flex;gap:10px;flex-wrap:wrap}
-    .chip{border:1px dashed var(--stroke);padding:8px 12px;border-radius:20px;background:#fff;cursor:pointer;font-weight:600}
-    .footer-actions{display:flex;gap:10px;flex-wrap:wrap}
-    .note{font-size:12px;color:#475569}
-    .hr{height:1px;background:var(--stroke);margin:14px 0}
-    canvas{background:#fff;border:1px solid var(--stroke);border-radius:12px;padding:8px}
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      margin: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: var(--ink)
+    }
+
+    .shell {
+      max-width: 1400px;
+      margin: auto;
+      padding: 20px
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--stroke);
+      border-radius: 16px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, .08)
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--primaryA), var(--primaryB));
+      color: #fff;
+      padding: 28px;
+      border-radius: 16px 16px 0 0
+    }
+
+    header h1 {
+      margin: 0 0 6px;
+      font-weight: 800;
+      font-size: 32px
+    }
+
+    header p {
+      margin: 0;
+      opacity: .9
+    }
+
+    .pad {
+      padding: 28px
+    }
+
+    h2 {
+      font-size: 20px;
+      margin: 0 0 16px;
+      color: #0b1220
+    }
+
+    .sub {
+      font-size: 12px;
+      color: #475569;
+      margin-top: -6px;
+      margin-bottom: 16px
+    }
+
+    .grid {
+      display: grid;
+      gap: 18px
+    }
+
+    .g-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr))
+    }
+
+    .g-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr))
+    }
+
+    .g-4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr))
+    }
+
+    @media (max-width:1024px) {
+
+      .g-2,
+      .g-3,
+      .g-4 {
+        grid-template-columns: 1fr
+      }
+    }
+
+    label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .3px;
+      text-transform: uppercase;
+      color: #334155;
+      margin-bottom: 6px;
+      display: block
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 12px 12px;
+      border: 2px solid var(--stroke);
+      border-radius: 10px;
+      font-size: 14px;
+      outline: none;
+      background: #fff
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--primaryA);
+      box-shadow: 0 0 0 3px rgba(79, 172, 254, .12)
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr 1fr 80px;
+      gap: 12px;
+      align-items: end;
+      border: 1px solid var(--stroke);
+      padding: 14px;
+      border-radius: 12px;
+      background: #fff
+    }
+
+    .row .cost {
+      background: #f1f5f9;
+      text-align: center;
+      padding: 10px;
+      border-radius: 8px;
+      font-weight: 700
+    }
+
+    .row .toggle {
+      border: none;
+      border-radius: 16px;
+      padding: 8px 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      cursor: pointer
+    }
+
+    .toggle.on {
+      background: #16a34a;
+      color: #fff
+    }
+
+    .toggle.off {
+      background: #94a3b8;
+      color: #fff
+    }
+
+    .btn {
+      background: linear-gradient(135deg, var(--primaryA), var(--primaryB));
+      color: #fff;
+      border: none;
+      border-radius: 22px;
+      padding: 10px 18px;
+      font-weight: 700;
+      cursor: pointer
+    }
+
+    .btn.secondary {
+      background: #0ea5e9
+    }
+
+    .kpi {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      border-radius: 14px;
+      padding: 18px
+    }
+
+    .kpi h3 {
+      margin: 0 0 6px;
+      font-size: 12px;
+      opacity: .9;
+      text-transform: uppercase;
+      letter-spacing: .6px
+    }
+
+    .kpi .v {
+      font-size: 26px;
+      font-weight: 800
+    }
+
+    .section {
+      border: 2px solid var(--stroke);
+      background: var(--card);
+      padding: 20px;
+      border-radius: 14px
+    }
+
+    .muted {
+      color: #475569
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap
+    }
+
+    .chip {
+      border: 1px dashed var(--stroke);
+      padding: 8px 12px;
+      border-radius: 20px;
+      background: #fff;
+      cursor: pointer;
+      font-weight: 600
+    }
+
+    .footer-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap
+    }
+
+    .note {
+      font-size: 12px;
+      color: #475569
+    }
+
+    .hr {
+      height: 1px;
+      background: var(--stroke);
+      margin: 14px 0
+    }
+
+    canvas {
+      background: #fff;
+      border: 1px solid var(--stroke);
+      border-radius: 12px;
+      padding: 8px
+    }
   </style>
 </head>
+
 <body>
   <div class="shell card">
     <header>
@@ -69,7 +274,8 @@
               <option value="EUR">EUR (€)</option>
               <option value="ARS">ARS ($)</option>
             </select>
-            <p class="note">Define la moneda de salida (no aplica conversión automática; podés fijar una tasa manual).</p>
+            <p class="note">Define la moneda de salida (no aplica conversión automática; podés fijar una tasa manual).
+            </p>
           </div>
           <div>
             <label>Tasa de cambio (1 USD → moneda)</label>
@@ -171,9 +377,18 @@
           </div>
         </div>
         <div class="grid g-3" style="margin-top:12px">
-          <div class="kpi"><h3>n8n</h3><div id="kpiN8n" class="v">$0</div></div>
-          <div class="kpi"><h3>Infra</h3><div id="kpiInfra" class="v">$0</div></div>
-          <div class="kpi"><h3>Ops/Extras</h3><div id="kpiOps" class="v">$0</div></div>
+          <div class="kpi">
+            <h3>n8n</h3>
+            <div id="kpiN8n" class="v">$0</div>
+          </div>
+          <div class="kpi">
+            <h3>Infra</h3>
+            <div id="kpiInfra" class="v">$0</div>
+          </div>
+          <div class="kpi">
+            <h3>Ops/Extras</h3>
+            <div id="kpiOps" class="v">$0</div>
+          </div>
         </div>
       </section>
 
@@ -198,17 +413,32 @@
             <input id="devR" type="number" value="50" oninput="updatePeople()" />
           </div>
         </div>
-        <div class="kpi" style="margin-top:12px"><h3>Personal mensual</h3><div id="kpiPeople" class="v">$0</div></div>
+        <div class="kpi" style="margin-top:12px">
+          <h3>Personal mensual</h3>
+          <div id="kpiPeople" class="v">$0</div>
+        </div>
       </section>
 
       <!-- Resumen / KPIs -->
       <section class="section">
         <h2>💰 Resumen y KPIs</h2>
         <div class="grid g-4">
-          <div class="kpi"><h3>LLM mensual</h3><div id="kpiLLM" class="v">$0</div></div>
-          <div class="kpi"><h3>Total mensual</h3><div id="kpiMonthly" class="v">$0</div></div>
-          <div class="kpi"><h3>Total anual</h3><div id="kpiYearly" class="v">$0</div></div>
-          <div class="kpi"><h3>Costo por ejecución</h3><div id="kpiCPE" class="v">$0</div></div>
+          <div class="kpi">
+            <h3>LLM mensual</h3>
+            <div id="kpiLLM" class="v">$0</div>
+          </div>
+          <div class="kpi">
+            <h3>Total mensual</h3>
+            <div id="kpiMonthly" class="v">$0</div>
+          </div>
+          <div class="kpi">
+            <h3>Total anual</h3>
+            <div id="kpiYearly" class="v">$0</div>
+          </div>
+          <div class="kpi">
+            <h3>Costo por ejecución</h3>
+            <div id="kpiCPE" class="v">$0</div>
+          </div>
         </div>
       </section>
 
@@ -248,42 +478,44 @@
 
     // LLM pricing (USD por 1M tokens) — editable en UI para custom
     const DEFAULT_LLM = {
-      'gpt-5': { name:'GPT-5', input:1.25, output:10.00 },
-      'gpt-4o': { name:'GPT-4o', input:2.50, output:10.00 },
-      'gpt-4o-mini': { name:'GPT-4o Mini', input:0.15, output:0.60 },
-      'gpt-3.5-turbo': { name:'GPT-3.5 Turbo', input:0.50, output:1.50 },
-      'claude-4.1-opus': { name:'Claude 4.1 Opus', input:15, output:75 },
-      'claude-4-sonnet': { name:'Claude 4 Sonnet <200K', input:3, output:15 },
-      'claude-4-sonnet_200': { name:'Claude 4 Sonnet >200K', input:6, output:22.5 },
-      'claude-3.5-haiku': { name:'Claude 3.5 Haiku', input:0.8, output:4 },
-      'claude-3-opus': { name:'Claude 3 Opus', input:15, output:75 },
-      'gemini-2.5-pro': { name:'Gemini 1.5 Pro <200K', input:1.25, output:10 },
-      'gemini-2.5-pro_200': { name:'Gemini 1.5 Pro >200K', input:2.5, output:15 },
-      'gemini-2.5-flash': { name:'Gemini 1.5 Flash', input:0.30, output:2.5 },
-      'mistral-small': { name:'Mistral Small', input:0.20, output:0.60 },
-      'mistral-large': { name:'Mistral Large', input:2.00, output:6.00 },
-      'command-r': { name:'Cohere Command R', input:0.15, output:0.60 },
-      'command-r-plus': { name:'Cohere Command R+', input:3.00, output:15.00 }
+      'gpt-5.3': { name: 'GPT-5.3', input: 1.25, output: 10.00 },
+      'gpt-5': { name: 'GPT-5', input: 1.25, output: 10.00 },
+      'gpt-4o': { name: 'GPT-4o', input: 2.50, output: 10.00 },
+      'gpt-4o-mini': { name: 'GPT-4o Mini', input: 0.15, output: 0.60 },
+      'claude-4.6-opus': { name: 'Claude 4.6 Opus <200K', input: 5, output: 25 },
+      'claude-4.6-opus_200': { name: 'Claude 4.6 Opus >200K', input: 10, output: 37.5 },
+      'claude-4.6-sonnet': { name: 'Claude 4.6 Sonnet', input: 3, output: 15 },
+      'claude-3.5-haiku': { name: 'Claude 3.5 Haiku', input: 0.8, output: 4 },
+      'gemini-3-pro': { name: 'Gemini 3 Pro <200K', input: 2, output: 12 },
+      'gemini-3-pro_200': { name: 'Gemini 3 Pro >200K', input: 4, output: 18 },
+      'gemini-3-flash': { name: 'Gemini 3 Flash', input: 0.5, output: 3 },
+      'gemini-2.5-pro': { name: 'Gemini 2.5 Pro <200K', input: 1.25, output: 10 },
+      'gemini-2.5-pro_200': { name: 'Gemini 2.5 Pro >200K', input: 2.5, output: 15 },
+      'gemini-2.5-flash': { name: 'Gemini 2.5 Flash', input: 0.3, output: 2.5 },
+      'mistral-small': { name: 'Mistral Small', input: 0.20, output: 0.60 },
+      'mistral-large': { name: 'Mistral Large', input: 2.00, output: 6.00 },
+      'command-r': { name: 'Cohere Command R', input: 0.15, output: 0.60 },
+      'command-r-plus': { name: 'Cohere Command R+', input: 3.00, output: 15.00 }
     };
 
     // Infra presets (USD/mes aprox.)
-    const INFRA = { aws:{basic:99,production:130,enterprise:340}, gcp:{basic:81,production:105,enterprise:280}, azure:{basic:92,production:120,enterprise:310}, digitalocean:{basic:54,production:70,enterprise:180}, linode:{basic:39,production:55,enterprise:150} };
+    const INFRA = { aws: { basic: 99, production: 130, enterprise: 340 }, gcp: { basic: 81, production: 105, enterprise: 280 }, azure: { basic: 92, production: 120, enterprise: 310 }, digitalocean: { basic: 54, production: 70, enterprise: 180 }, linode: { basic: 39, production: 55, enterprise: 150 } };
 
     // Estado
     let llmRows = [];
-    let charts = { pie:null, line:null };
+    let charts = { pie: null, line: null };
 
     // ======= UI helpers =======
-    const fmt = (v)=> `${sym()}${(v * rate()).toFixed(2)}`;
-    const sym = ()=> currencyEl.value==='EUR' ? '€' : currencyEl.value==='ARS' ? '$' : '$';
-    const rate = ()=> Number(fxRateEl.value||1);
+    const fmt = (v) => `${sym()}${(v * rate()).toFixed(2)}`;
+    const sym = () => currencyEl.value === 'EUR' ? '€' : currencyEl.value === 'ARS' ? '$' : '$';
+    const rate = () => Number(fxRateEl.value || 1);
 
-    function el(html){ const t=document.createElement('template'); t.innerHTML=html.trim(); return t.content.firstChild; }
+    function el(html) { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstChild; }
 
     // ======= LLM rows =======
-    function addLLMRow(presetKey){
+    function addLLMRow(presetKey) {
       const id = crypto.randomUUID();
-      const options = Object.entries(DEFAULT_LLM).map(([k,m])=>`<option value="${k}">${m.name} ($${m.input}/$${m.output} x 1M tok)</option>`).join('');
+      const options = Object.entries(DEFAULT_LLM).map(([k, m]) => `<option value="${k}">${m.name} ($${m.input}/$${m.output} x 1M tok)</option>`).join('');
       const node = el(`
         <div class="row" data-id="${id}">
           <div>
@@ -313,83 +545,83 @@
         </div>
       `);
       node.querySelector('.mdl').addEventListener('change', updateLLM);
-      ['in','out','calls','avgTok'].forEach(c=> node.querySelector('.'+c).addEventListener('input', updateLLM));
-      node.querySelector('.toggle').addEventListener('click', (e)=>{ e.target.classList.toggle('on'); e.target.classList.toggle('off'); updateLLM(); });
+      ['in', 'out', 'calls', 'avgTok'].forEach(c => node.querySelector('.' + c).addEventListener('input', updateLLM));
+      node.querySelector('.toggle').addEventListener('click', (e) => { e.target.classList.toggle('on'); e.target.classList.toggle('off'); updateLLM(); });
       document.getElementById('llmRows').appendChild(node);
-      if(presetKey){ node.querySelector('.mdl').value=presetKey; }
+      if (presetKey) { node.querySelector('.mdl').value = presetKey; }
       llmRows.push(node);
       updateLLM();
     }
 
-    function addCustomModel(){
-      const key = `custom-${crypto.randomUUID().slice(0,5)}`;
-      const name = prompt('Nombre del modelo:','Mi LLM'); if(!name) return;
-      const input = Number(prompt('Precio Input por 1M tokens (USD):','1'))||0;
-      const output = Number(prompt('Precio Output por 1M tokens (USD):','2'))||0;
+    function addCustomModel() {
+      const key = `custom-${crypto.randomUUID().slice(0, 5)}`;
+      const name = prompt('Nombre del modelo:', 'Mi LLM'); if (!name) return;
+      const input = Number(prompt('Precio Input por 1M tokens (USD):', '1')) || 0;
+      const output = Number(prompt('Precio Output por 1M tokens (USD):', '2')) || 0;
       DEFAULT_LLM[key] = { name, input, output };
       addLLMRow(key);
     }
 
-    function parseAvgTok(s){
-      if(!s) return {in:0,out:0};
-      const [a,b] = s.split('/').map(x=>Number(x||0));
-      return { in:isFinite(a)?a:0, out:isFinite(b)?b:0 };
+    function parseAvgTok(s) {
+      if (!s) return { in: 0, out: 0 };
+      const [a, b] = s.split('/').map(x => Number(x || 0));
+      return { in: isFinite(a) ? a : 0, out: isFinite(b) ? b : 0 };
     }
 
-    function updateLLM(){
+    function updateLLM() {
       let total = 0;
-      llmRows.forEach(row=>{
+      llmRows.forEach(row => {
         const on = row.querySelector('.toggle').classList.contains('on');
         const mdlKey = row.querySelector('.mdl').value;
         const m = DEFAULT_LLM[mdlKey];
-        const inM = Number(row.querySelector('.in').value||0); // millones
-        const outM = Number(row.querySelector('.out').value||0);
-        const calls = Number(row.querySelector('.calls').value||0);
-        const {in:avgIn,out:avgOut} = parseAvgTok(row.querySelector('.avgTok').value);
+        const inM = Number(row.querySelector('.in').value || 0); // millones
+        const outM = Number(row.querySelector('.out').value || 0);
+        const calls = Number(row.querySelector('.calls').value || 0);
+        const { in: avgIn, out: avgOut } = parseAvgTok(row.querySelector('.avgTok').value);
         let inTokM = inM, outTokM = outM;
-        if(calls>0 && (avgIn>0 || avgOut>0)){
-          inTokM += (calls*avgIn)/1_000_000;
-          outTokM += (calls*avgOut)/1_000_000;
+        if (calls > 0 && (avgIn > 0 || avgOut > 0)) {
+          inTokM += (calls * avgIn) / 1_000_000;
+          outTokM += (calls * avgOut) / 1_000_000;
         }
         let cost = 0;
-        if(on && m){ cost = inTokM*m.input + outTokM*m.output; }
+        if (on && m) { cost = inTokM * m.input + outTokM * m.output; }
         row.querySelector('.cost').textContent = fmt(cost);
         row.dataset.costUsd = cost; // guardamos en USD
-        total += on? cost:0;
+        total += on ? cost : 0;
       });
       document.getElementById('kpiLLM').textContent = fmt(total);
       updateTotals();
     }
 
     // ======= n8n & Infra =======
-    function updateN8n(){
+    function updateN8n() {
       const type = document.getElementById('n8nType').value;
       const execWrap = document.getElementById('execWrap');
       const provWrap = document.getElementById('provWrap');
-      const executions = Number(document.getElementById('executions').value||0);
+      const executions = Number(document.getElementById('executions').value || 0);
       const provider = document.getElementById('infraProvider').value;
-      const avgDuration = Number(document.getElementById('avgDuration').value||0);
-      const concurrency = Number(document.getElementById('concurrency').value||0);
-      const logsGb = Number(document.getElementById('logsGb').value||0);
-      const egressGb = Number(document.getElementById('egressGb').value||0);
-      const infraOverride = Number(document.getElementById('infraOverride').value||0);
-      const support = Number(document.getElementById('support').value||0);
-      const backups = Number(document.getElementById('backups').value||0);
+      const avgDuration = Number(document.getElementById('avgDuration').value || 0);
+      const concurrency = Number(document.getElementById('concurrency').value || 0);
+      const logsGb = Number(document.getElementById('logsGb').value || 0);
+      const egressGb = Number(document.getElementById('egressGb').value || 0);
+      const infraOverride = Number(document.getElementById('infraOverride').value || 0);
+      const support = Number(document.getElementById('support').value || 0);
+      const backups = Number(document.getElementById('backups').value || 0);
 
-      execWrap.style.display = type.startsWith('cloud') ? 'block':'none';
-      provWrap.style.display = type.startsWith('self') ? 'block':'none';
+      execWrap.style.display = type.startsWith('cloud') ? 'block' : 'none';
+      provWrap.style.display = type.startsWith('self') ? 'block' : 'none';
 
-      let n8n = 0, infra = 0, ops = support + backups + (logsGb*0.1) + (egressGb*0.08);
-      if(type==='cloud-starter'){ n8n = 24 + Math.max(0, Math.ceil(Math.max(0,executions-2500)/1000)*10); }
-      if(type==='cloud-pro'){ n8n = 240 + Math.max(0, Math.ceil(Math.max(0,executions-25000)/1000)*8); }
-      if(type==='cloud-enterprise'){ n8n = Math.max(500, executions*0.005); }
-      if(type.startsWith('self')){
+      let n8n = 0, infra = 0, ops = support + backups + (logsGb * 0.1) + (egressGb * 0.08);
+      if (type === 'cloud-starter') { n8n = 24 + Math.max(0, Math.ceil(Math.max(0, executions - 2500) / 1000) * 10); }
+      if (type === 'cloud-pro') { n8n = 240 + Math.max(0, Math.ceil(Math.max(0, executions - 25000) / 1000) * 8); }
+      if (type === 'cloud-enterprise') { n8n = Math.max(500, executions * 0.005); }
+      if (type.startsWith('self')) {
         const tier = type.split('-')[1];
-        if(infraOverride>0){ infra = infraOverride; }
-        else if(provider && INFRA[provider]){ infra = INFRA[provider][tier]||0; }
+        if (infraOverride > 0) { infra = infraOverride; }
+        else if (provider && INFRA[provider]) { infra = INFRA[provider][tier] || 0; }
         // costo operacional aproximado basado en uso de CPU (muy simple)
-        const cpuHours = (executions * (avgDuration/60)) / 60; // en horas
-        ops += cpuHours * 0.01 * Math.max(1,concurrency); // USD
+        const cpuHours = (executions * (avgDuration / 60)) / 60; // en horas
+        ops += cpuHours * 0.01 * Math.max(1, concurrency); // USD
       }
 
       document.getElementById('kpiN8n').textContent = fmt(n8n);
@@ -404,12 +636,12 @@
     }
 
     // ======= People =======
-    function updatePeople(){
-      const devopsH = Number(document.getElementById('devopsH').value||0);
-      const devopsR = Number(document.getElementById('devopsR').value||0);
-      const devH = Number(document.getElementById('devH').value||0);
-      const devR = Number(document.getElementById('devR').value||0);
-      const total = devopsH*devopsR + devH*devR;
+    function updatePeople() {
+      const devopsH = Number(document.getElementById('devopsH').value || 0);
+      const devopsR = Number(document.getElementById('devopsR').value || 0);
+      const devH = Number(document.getElementById('devH').value || 0);
+      const devR = Number(document.getElementById('devR').value || 0);
+      const total = devopsH * devopsR + devH * devR;
       const k = document.getElementById('kpiPeople');
       k.textContent = fmt(total);
       k.dataset.usd = total;
@@ -417,15 +649,15 @@
     }
 
     // ======= Totales & KPIs =======
-    function getUSDFromKPI(id){ return Number(document.getElementById(id).dataset.usd || 0); }
+    function getUSDFromKPI(id) { return Number(document.getElementById(id).dataset.usd || 0); }
 
-    function updateTotals(){
-      const llm = llmRows.reduce((s,row)=> s + Number(row.dataset.costUsd||0), 0);
+    function updateTotals() {
+      const llm = llmRows.reduce((s, row) => s + Number(row.dataset.costUsd || 0), 0);
       const n8n = getUSDFromKPI('kpiN8n');
       const infra = getUSDFromKPI('kpiInfra');
       const ops = getUSDFromKPI('kpiOps');
       const people = getUSDFromKPI('kpiPeople');
-      const contingency = Number(document.getElementById('contingency').value||0)/100;
+      const contingency = Number(document.getElementById('contingency').value || 0) / 100;
 
       const monthly = (llm + n8n + infra + ops + people) * (1 + contingency);
       const yearly = monthly * 12;
@@ -435,52 +667,52 @@
       document.getElementById('kpiLLM').dataset.usd = llm;
 
       // Costo por ejecución (si hay número de ejecuciones)
-      const executions = Number(document.getElementById('executions').value||0);
-      const cpe = executions>0 ? (monthly/Math.max(1,executions)) : 0;
-      document.getElementById('kpiCPE').textContent = executions>0 ? fmt(cpe) : '—';
+      const executions = Number(document.getElementById('executions').value || 0);
+      const cpe = executions > 0 ? (monthly / Math.max(1, executions)) : 0;
+      document.getElementById('kpiCPE').textContent = executions > 0 ? fmt(cpe) : '—';
 
       drawCharts({ llm, n8n, infra, ops, people, monthly });
     }
 
     // ======= Charts =======
-    function drawCharts({ llm, n8n, infra, ops, people, monthly }){
+    function drawCharts({ llm, n8n, infra, ops, people, monthly }) {
       const pieEl = document.getElementById('pie');
       const lineEl = document.getElementById('line');
-      const labels = ['LLM','n8n','Infra','Ops','Personal'];
-      const data = [llm,n8n,infra,ops,people].map(v=> v*rate());
+      const labels = ['LLM', 'n8n', 'Infra', 'Ops', 'Personal'];
+      const data = [llm, n8n, infra, ops, people].map(v => v * rate());
 
-      if(charts.pie){ charts.pie.data.datasets[0].data = data; charts.pie.update(); }
-      else{
-        charts.pie = new Chart(pieEl, { type:'pie', data:{ labels, datasets:[{ data }] }, options:{ plugins:{ legend:{ position:'bottom' }}}});
+      if (charts.pie) { charts.pie.data.datasets[0].data = data; charts.pie.update(); }
+      else {
+        charts.pie = new Chart(pieEl, { type: 'pie', data: { labels, datasets: [{ data }] }, options: { plugins: { legend: { position: 'bottom' } } } });
       }
 
       // Proyección a 12 meses con crecimiento compuesto
-      const g = Number(document.getElementById('growth').value||0)/100;
-      let series = []; let m = monthly*rate();
-      for(let i=1;i<=12;i++){ series.push(Number(m.toFixed(2))); m *= (1+g); }
-      const months = Array.from({length:12},(_,i)=>`M${i+1}`);
-      if(charts.line){ charts.line.data.labels = months; charts.line.data.datasets[0].data = series; charts.line.update(); }
-      else{
-        charts.line = new Chart(lineEl, { type:'line', data:{ labels:months, datasets:[{ label:`Total (${currencyEl.value})`, data:series, tension:.25 }] }, options:{ plugins:{ legend:{ display:true }}, scales:{ y:{ beginAtZero:true }}}});
+      const g = Number(document.getElementById('growth').value || 0) / 100;
+      let series = []; let m = monthly * rate();
+      for (let i = 1; i <= 12; i++) { series.push(Number(m.toFixed(2))); m *= (1 + g); }
+      const months = Array.from({ length: 12 }, (_, i) => `M${i + 1}`);
+      if (charts.line) { charts.line.data.labels = months; charts.line.data.datasets[0].data = series; charts.line.update(); }
+      else {
+        charts.line = new Chart(lineEl, { type: 'line', data: { labels: months, datasets: [{ label: `Total (${currencyEl.value})`, data: series, tension: .25 }] }, options: { plugins: { legend: { display: true } }, scales: { y: { beginAtZero: true } } } });
       }
     }
 
     // ======= Presets =======
-    function applyPreset(name){
+    function applyPreset(name) {
       resetAll();
-      if(name==='poC'){
+      if (name === 'poC') {
         document.getElementById('n8nType').value = 'cloud-starter';
         document.getElementById('executions').value = 3000;
         addLLMRow('gpt-4o-mini');
       }
-      if(name==='prod'){
+      if (name === 'prod') {
         document.getElementById('n8nType').value = 'self-production';
         document.getElementById('infraProvider').value = 'aws';
         document.getElementById('executions').value = 25000;
         addLLMRow('gpt-4o');
         addLLMRow('mistral-small');
       }
-      if(name==='enterprise'){
+      if (name === 'enterprise') {
         document.getElementById('n8nType').value = 'self-enterprise';
         document.getElementById('infraProvider').value = 'azure';
         document.getElementById('executions').value = 150000;
@@ -491,70 +723,70 @@
     }
 
     // ======= Persistencia =======
-    function saveLocal(){
+    function saveLocal() {
       const state = {
-        currency: currencyEl.value, fx:Number(fxRateEl.value), cont:Number(document.getElementById('contingency').value), growth:Number(document.getElementById('growth').value),
-        n8n:{ type:document.getElementById('n8nType').value, executions:Number(document.getElementById('executions').value||0), provider:document.getElementById('infraProvider').value, avgDuration:Number(document.getElementById('avgDuration').value||0), concurrency:Number(document.getElementById('concurrency').value||0), logsGb:Number(document.getElementById('logsGb').value||0), egressGb:Number(document.getElementById('egressGb').value||0), infraOverride:Number(document.getElementById('infraOverride').value||0), support:Number(document.getElementById('support').value||0), backups:Number(document.getElementById('backups').value||0) },
-        people:{ dH:Number(document.getElementById('devopsH').value||0), dR:Number(document.getElementById('devopsR').value||0), devH:Number(document.getElementById('devH').value||0), devR:Number(document.getElementById('devR').value||0) },
-        llm: llmRows.map(r=>({ mdl:r.querySelector('.mdl').value, in:r.querySelector('.in').value, out:r.querySelector('.out').value, calls:r.querySelector('.calls').value, avg:r.querySelector('.avgTok').value, on:r.querySelector('.toggle').classList.contains('on') }))
+        currency: currencyEl.value, fx: Number(fxRateEl.value), cont: Number(document.getElementById('contingency').value), growth: Number(document.getElementById('growth').value),
+        n8n: { type: document.getElementById('n8nType').value, executions: Number(document.getElementById('executions').value || 0), provider: document.getElementById('infraProvider').value, avgDuration: Number(document.getElementById('avgDuration').value || 0), concurrency: Number(document.getElementById('concurrency').value || 0), logsGb: Number(document.getElementById('logsGb').value || 0), egressGb: Number(document.getElementById('egressGb').value || 0), infraOverride: Number(document.getElementById('infraOverride').value || 0), support: Number(document.getElementById('support').value || 0), backups: Number(document.getElementById('backups').value || 0) },
+        people: { dH: Number(document.getElementById('devopsH').value || 0), dR: Number(document.getElementById('devopsR').value || 0), devH: Number(document.getElementById('devH').value || 0), devR: Number(document.getElementById('devR').value || 0) },
+        llm: llmRows.map(r => ({ mdl: r.querySelector('.mdl').value, in: r.querySelector('.in').value, out: r.querySelector('.out').value, calls: r.querySelector('.calls').value, avg: r.querySelector('.avgTok').value, on: r.querySelector('.toggle').classList.contains('on') }))
       };
       localStorage.setItem('llm-n8n-calculator', JSON.stringify(state));
       alert('Guardado local listo ✅');
     }
 
-    function loadLocal(){
-      const s = localStorage.getItem('llm-n8n-calculator'); if(!s) return alert('No hay guardado');
+    function loadLocal() {
+      const s = localStorage.getItem('llm-n8n-calculator'); if (!s) return alert('No hay guardado');
       const st = JSON.parse(s);
-      currencyEl.value = st.currency||'USD'; fxRateEl.value = st.fx||1; document.getElementById('contingency').value=st.cont||0; document.getElementById('growth').value=st.growth||0;
-      document.getElementById('n8nType').value = st.n8n.type||''; document.getElementById('executions').value=st.n8n.executions||0; document.getElementById('infraProvider').value=st.n8n.provider||''; document.getElementById('avgDuration').value=st.n8n.avgDuration||0; document.getElementById('concurrency').value=st.n8n.concurrency||0; document.getElementById('logsGb').value=st.n8n.logsGb||0; document.getElementById('egressGb').value=st.n8n.egressGb||0; document.getElementById('infraOverride').value=st.n8n.infraOverride||0; document.getElementById('support').value=st.n8n.support||0; document.getElementById('backups').value=st.n8n.backups||0;
-      document.getElementById('devopsH').value = st.people.dH||0; document.getElementById('devopsR').value=st.people.dR||0; document.getElementById('devH').value=st.people.devH||0; document.getElementById('devR').value=st.people.devR||0;
-      document.getElementById('llmRows').innerHTML=''; llmRows=[];
-      (st.llm||[]).forEach(r=>{ addLLMRow(r.mdl||''); const last = llmRows[llmRows.length-1]; last.querySelector('.in').value=r.in||''; last.querySelector('.out').value=r.out||''; last.querySelector('.calls').value=r.calls||''; last.querySelector('.avgTok').value=r.avg||''; const t = last.querySelector('.toggle'); t.classList.toggle('on', !!r.on); t.classList.toggle('off', !r.on); });
+      currencyEl.value = st.currency || 'USD'; fxRateEl.value = st.fx || 1; document.getElementById('contingency').value = st.cont || 0; document.getElementById('growth').value = st.growth || 0;
+      document.getElementById('n8nType').value = st.n8n.type || ''; document.getElementById('executions').value = st.n8n.executions || 0; document.getElementById('infraProvider').value = st.n8n.provider || ''; document.getElementById('avgDuration').value = st.n8n.avgDuration || 0; document.getElementById('concurrency').value = st.n8n.concurrency || 0; document.getElementById('logsGb').value = st.n8n.logsGb || 0; document.getElementById('egressGb').value = st.n8n.egressGb || 0; document.getElementById('infraOverride').value = st.n8n.infraOverride || 0; document.getElementById('support').value = st.n8n.support || 0; document.getElementById('backups').value = st.n8n.backups || 0;
+      document.getElementById('devopsH').value = st.people.dH || 0; document.getElementById('devopsR').value = st.people.dR || 0; document.getElementById('devH').value = st.people.devH || 0; document.getElementById('devR').value = st.people.devR || 0;
+      document.getElementById('llmRows').innerHTML = ''; llmRows = [];
+      (st.llm || []).forEach(r => { addLLMRow(r.mdl || ''); const last = llmRows[llmRows.length - 1]; last.querySelector('.in').value = r.in || ''; last.querySelector('.out').value = r.out || ''; last.querySelector('.calls').value = r.calls || ''; last.querySelector('.avgTok').value = r.avg || ''; const t = last.querySelector('.toggle'); t.classList.toggle('on', !!r.on); t.classList.toggle('off', !r.on); });
       updateAll(); alert('Cargado ✅');
     }
 
     // ======= Export =======
-    function exportCSV(){
+    function exportCSV() {
       const rows = [];
       // LLMs
-      llmRows.forEach(r=>{ const mdl=r.querySelector('.mdl'); if(!mdl.value) return; const name = mdl.options[mdl.selectedIndex].text.split('(')[0].trim(); const cost = Number(r.dataset.costUsd||0); rows.push(['LLM', name, cost.toFixed(2)]); });
+      llmRows.forEach(r => { const mdl = r.querySelector('.mdl'); if (!mdl.value) return; const name = mdl.options[mdl.selectedIndex].text.split('(')[0].trim(); const cost = Number(r.dataset.costUsd || 0); rows.push(['LLM', name, cost.toFixed(2)]); });
       // n8n/infra/ops/people
-      rows.push(['n8n','Suscripción', getUSDFromKPI('kpiN8n').toFixed(2)]);
-      rows.push(['Infra','Hosting', getUSDFromKPI('kpiInfra').toFixed(2)]);
-      rows.push(['Ops','Soporte+Egreso+Logs', getUSDFromKPI('kpiOps').toFixed(2)]);
-      rows.push(['Personal','RRHH', getUSDFromKPI('kpiPeople').toFixed(2)]);
+      rows.push(['n8n', 'Suscripción', getUSDFromKPI('kpiN8n').toFixed(2)]);
+      rows.push(['Infra', 'Hosting', getUSDFromKPI('kpiInfra').toFixed(2)]);
+      rows.push(['Ops', 'Soporte+Egreso+Logs', getUSDFromKPI('kpiOps').toFixed(2)]);
+      rows.push(['Personal', 'RRHH', getUSDFromKPI('kpiPeople').toFixed(2)]);
       const total = document.getElementById('kpiMonthly').textContent; // formateado
       // CSV
       let csv = 'Categoria,Detalle,CostoUSD_Mensual\n';
-      rows.forEach(r=>{ csv += `${r[0]},${r[1]},${r[2]}\n`; });
-      csv += `TOTAL,Mensual,${(rows.reduce((s, r)=> s + Number(r[2]), 0)).toFixed(2)}`;
-      const blob = new Blob([csv], {type:'text/csv'});
+      rows.forEach(r => { csv += `${r[0]},${r[1]},${r[2]}\n`; });
+      csv += `TOTAL,Mensual,${(rows.reduce((s, r) => s + Number(r[2]), 0)).toFixed(2)}`;
+      const blob = new Blob([csv], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href=url; a.download=`costos_llm_n8n_${new Date().toISOString().slice(0,10)}.csv`; a.click(); URL.revokeObjectURL(url);
+      const a = document.createElement('a'); a.href = url; a.download = `costos_llm_n8n_${new Date().toISOString().slice(0, 10)}.csv`; a.click(); URL.revokeObjectURL(url);
     }
 
-    function exportJSON(){
+    function exportJSON() {
       const data = {
-        currency: currencyEl.value, fx: rate(), contingency: Number(document.getElementById('contingency').value||0), growth: Number(document.getElementById('growth').value||0),
-        llm: llmRows.map(r=>({ model: r.querySelector('.mdl').value, inM: Number(r.querySelector('.in').value||0), outM: Number(r.querySelector('.out').value||0), calls: Number(r.querySelector('.calls').value||0), avg: r.querySelector('.avgTok').value, costUSD: Number(r.dataset.costUsd||0) })),
-        n8n: { type: document.getElementById('n8nType').value, executions: Number(document.getElementById('executions').value||0), provider: document.getElementById('infraProvider').value, n8nUSD: getUSDFromKPI('kpiN8n'), infraUSD: getUSDFromKPI('kpiInfra'), opsUSD: getUSDFromKPI('kpiOps') },
+        currency: currencyEl.value, fx: rate(), contingency: Number(document.getElementById('contingency').value || 0), growth: Number(document.getElementById('growth').value || 0),
+        llm: llmRows.map(r => ({ model: r.querySelector('.mdl').value, inM: Number(r.querySelector('.in').value || 0), outM: Number(r.querySelector('.out').value || 0), calls: Number(r.querySelector('.calls').value || 0), avg: r.querySelector('.avgTok').value, costUSD: Number(r.dataset.costUsd || 0) })),
+        n8n: { type: document.getElementById('n8nType').value, executions: Number(document.getElementById('executions').value || 0), provider: document.getElementById('infraProvider').value, n8nUSD: getUSDFromKPI('kpiN8n'), infraUSD: getUSDFromKPI('kpiInfra'), opsUSD: getUSDFromKPI('kpiOps') },
         peopleUSD: getUSDFromKPI('kpiPeople'),
-        totals: { monthlyUSD: Number((document.getElementById('kpiMonthly').textContent||'').replace(/[^0-9.]/g,'')), yearlyUSD: Number((document.getElementById('kpiYearly').textContent||'').replace(/[^0-9.]/g,'')) }
+        totals: { monthlyUSD: Number((document.getElementById('kpiMonthly').textContent || '').replace(/[^0-9.]/g, '')), yearlyUSD: Number((document.getElementById('kpiYearly').textContent || '').replace(/[^0-9.]/g, '')) }
       };
-      const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href=url; a.download=`costos_llm_n8n_${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url);
+      const a = document.createElement('a'); a.href = url; a.download = `costos_llm_n8n_${new Date().toISOString().slice(0, 10)}.json`; a.click(); URL.revokeObjectURL(url);
     }
 
     // ======= Misc =======
-    function onCurrencyChange(){ updateAll(); }
-    function updateAll(){ updateLLM(); updateN8n(); updatePeople(); }
+    function onCurrencyChange() { updateAll(); }
+    function updateAll() { updateLLM(); updateN8n(); updatePeople(); }
 
-    function resetAll(){
-      document.getElementById('currency').value='USD'; document.getElementById('fxRate').value=1; document.getElementById('contingency').value=10; document.getElementById('growth').value=8;
-      document.getElementById('n8nType').value=''; document.getElementById('executions').value=''; document.getElementById('infraProvider').value=''; document.getElementById('avgDuration').value=6; document.getElementById('concurrency').value=2; document.getElementById('logsGb').value=5; document.getElementById('egressGb').value=20; document.getElementById('infraOverride').value=''; document.getElementById('support').value=50; document.getElementById('backups').value=25;
-      document.getElementById('devopsH').value=4; document.getElementById('devopsR').value=60; document.getElementById('devH').value=8; document.getElementById('devR').value=50;
-      document.getElementById('llmRows').innerHTML=''; llmRows=[]; addLLMRow();
+    function resetAll() {
+      document.getElementById('currency').value = 'USD'; document.getElementById('fxRate').value = 1; document.getElementById('contingency').value = 10; document.getElementById('growth').value = 8;
+      document.getElementById('n8nType').value = ''; document.getElementById('executions').value = ''; document.getElementById('infraProvider').value = ''; document.getElementById('avgDuration').value = 6; document.getElementById('concurrency').value = 2; document.getElementById('logsGb').value = 5; document.getElementById('egressGb').value = 20; document.getElementById('infraOverride').value = ''; document.getElementById('support').value = 50; document.getElementById('backups').value = 25;
+      document.getElementById('devopsH').value = 4; document.getElementById('devopsR').value = 60; document.getElementById('devH').value = 8; document.getElementById('devR').value = 50;
+      document.getElementById('llmRows').innerHTML = ''; llmRows = []; addLLMRow();
       updateAll();
     }
 
@@ -563,4 +795,5 @@
     updateAll();
   </script>
 </body>
+
 </html>
