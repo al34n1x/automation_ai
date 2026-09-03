@@ -1,0 +1,184 @@
+{
+  "name": "SW_Content_Creation",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        48,
+        512
+      ],
+      "id": "7368bc31-3525-49e1-8196-9f43a0517835",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.query }}",
+        "options": {
+          "systemMessage": "=You are an expert content creator and SEO strategist with deep knowledge of search engine optimization, keyword research, and digital marketing best practices.\n\nWhen given a topic or query, you will:\n\n1. **Analyze search intent** — Identify whether the intent is informational, navigational, commercial, or transactional, and tailor the content accordingly.\n\n2. **Structure content for SEO** — Use a clear hierarchy with an H1 title, H2/H3 subheadings, short paragraphs, and bullet points where appropriate to improve readability and crawlability.\n\n3. **Optimize for keywords** — Naturally integrate the primary keyword and semantically related LSI keywords throughout the content, including in the title, first paragraph, subheadings, and meta description.\n\n4. **Write compelling meta tags** — Always output:\n   - A **meta title** (50–60 characters)\n   - A **meta description** (150–160 characters)\n\n5. **Follow E-E-A-T principles** — Demonstrate Experience, Expertise, Authoritativeness, and Trustworthiness in tone and content depth.\n\n6. **Include a call to action (CTA)** — End every piece with a clear, relevant CTA aligned with the content's intent.\n\nAlways write in a clear, engaging, and professional tone. Avoid keyword stuffing. Prioritize value for the human reader while satisfying search engine requirements.\n\nOutput format:\n- Meta Title\n- Meta Description\n- Full Article (with structured headings)\n- Suggested internal/external linking opportunities (optional)"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        1296,
+        576
+      ],
+      "id": "79cd2f8f-7e97-479c-a664-0746fc504b1d",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        544,
+        1200
+      ],
+      "id": "22918da2-5921-4c12-aa98-1ae6c4495f96",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "51oN9QrCM5ZMZ1Zu",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## ✍️ Sub-flujo: SW_Content_Creation (Creador de Contenido SEO)\n\n**¿Qué hace este flujo?**\nEste es un **sub-workflow** (un flujo \"ayudante\") que NO se ejecuta solo: es llamado por otro flujo principal (por ejemplo, el \"AI Agent Coordinador\") cuando alguien pide ayuda para redactar contenido, marketing o publicaciones.\n\n**En pocas palabras:**\n1. Recibe una consulta con el tema o pedido de contenido (por ejemplo: \"crea un post de Twitter promocionando mi tutorial de YouTube\").\n2. Un agente de IA, que actúa como **redactor experto y estratega SEO**, escribe el contenido optimizado para buscadores y redes sociales.\n3. Devuelve el contenido ya listo: título, meta descripción, artículo estructurado y sugerencias de enlaces.\n\n**Nivel:** Básico-Intermedio. Piensa en este flujo como contratar a un **redactor/copywriter profesional** que, además de escribir bien, sabe cómo hacer que el contenido se posicione en Google.",
+        "height": 444,
+        "width": 2860,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        -336
+      ],
+      "id": "e7d57c80-4cd8-4896-94da-b2b8de294c38",
+      "name": "Sticky Note - Overview"
+    },
+    {
+      "parameters": {
+        "content": "### 1️⃣ When Executed by Another Workflow\n\n**¿Qué es?** El punto de entrada especial para **sub-workflows**.\n\n**¿Qué hace?** Este nodo no se activa por sí solo (no tiene un horario ni un chat propio). En cambio, **espera a que otro flujo lo llame** y le envíe datos — en este caso, el pedido de contenido (`query`), por ejemplo: \"crea un post de Twitter promocionando mi tutorial de YouTube sobre AI Agents en n8n\".\n\n**Modo `passthrough`:** significa que los datos que le envía el flujo \"padre\" pasan tal cual, sin transformarlos, directo al siguiente nodo.\n\n**Piensa en esto como:** un redactor freelance que solo empieza a trabajar cuando su cliente (el flujo principal) le manda el brief con lo que necesita escribir.\n\n💡 En este archivo hay datos de prueba (`pinData`) ya cargados, para que puedas probar el flujo sin necesidad de conectarlo todavía a otro workflow.",
+        "height": 1220,
+        "width": 668,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        128
+      ],
+      "id": "9cfe257b-ba81-460c-9142-6d3f20b1e284",
+      "name": "Sticky Note - Trigger"
+    },
+    {
+      "parameters": {
+        "content": "### 2️⃣ AI Agent — El redactor y estratega SEO\n\n**¿Qué es?** Un agente de IA especializado en **crear contenido optimizado para buscadores (SEO)**.\n\n**¿Qué hace exactamente?** Recibe el pedido (`$json.query`) y sigue estos pasos internos (definidos en sus instrucciones):\n1. **Analiza la intención de búsqueda** (¿la persona busca información, quiere comprar, quiere navegar a un sitio, etc.?) y adapta el contenido a eso.\n2. **Estructura el contenido para SEO**: usa un título principal (H1), subtítulos (H2/H3), párrafos cortos y viñetas para que sea fácil de leer.\n3. **Optimiza palabras clave**: incluye la palabra clave principal y términos relacionados de forma natural (sin \"forzarlos\").\n4. **Redacta etiquetas meta**: siempre entrega un **meta título** (50-60 caracteres) y una **meta descripción** (150-160 caracteres) — esto es lo que se ve en los resultados de Google.\n5. **Aplica principios E-E-A-T** (Experiencia, Pericia, Autoridad y Confianza) para que el contenido se vea creíble y profesional.\n6. **Incluye un llamado a la acción (CTA)** al final, relacionado con el objetivo del contenido.\n\n**Formato de salida:** Meta Título, Meta Descripción, Artículo completo (con encabezados) y, opcionalmente, sugerencias de enlaces internos/externos.\n\n**Necesita 1 apoyo conectado por debajo:**\n- Un modelo de lenguaje (OpenAI Chat Model) que le da la capacidad real de redactar el texto.\n\n💡 A diferencia del \"Agente CRM\" (que solo entrega datos en JSON), este agente entrega **texto listo para publicar**, ya redactado y con formato.",
+        "height": 728,
+        "width": 1396,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        400,
+        128
+      ],
+      "id": "a99a2ddf-18ab-4f9b-be1c-0946c7c0871f",
+      "name": "Sticky Note - AI Agent"
+    },
+    {
+      "parameters": {
+        "content": "### 🧠 OpenAI Chat Model\n\n**¿Qué es?** El modelo de lenguaje (LLM) que le da inteligencia al AI Agent redactor.\n\n**¿Qué hace?** Es el motor que realmente entiende el tema pedido, investiga (con su conocimiento interno) cómo estructurarlo, y escribe el artículo, los títulos y la meta descripción. Usa el modelo **gpt-4.1-mini** (rápido y económico).\n\n**Piensa en esto como:** el motor del auto. El AI Agent es quien decide el enfoque y la estrategia SEO, pero este nodo es lo que hace que el texto realmente se escriba.\n\n⚠️ Requiere una credencial de OpenAI (API Key) ya conectada.",
+        "height": 472,
+        "width": 1392,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        400,
+        880
+      ],
+      "id": "aabe27ab-f40b-4937-9ced-7ecdf5750be8",
+      "name": "Sticky Note - OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "content": "### 🔄 Resumen del flujo completo\n\n**When Executed by Another Workflow** → otro flujo (por ejemplo el Coordinador Maestro) llama a este sub-flujo y le pasa una consulta (`query`) con el pedido de contenido\n     ↓\n**AI Agent** (con ayuda de OpenAI Chat Model) → analiza la intención, investiga palabras clave, estructura el artículo y redacta el contenido siguiendo buenas prácticas de SEO\n     ↓\n**Resultado** → devuelve el contenido final: meta título, meta descripción, artículo completo con encabezados y llamado a la acción, listo para que el flujo principal lo entregue al usuario o lo publique\n\n✅ Idea clave: este sub-flujo es un **\"módulo especializado de redacción\"**. Al igual que el Sub_WF_CRM se especializa en buscar datos de clientes, este se especializa en **crear contenido de marketing/SEO**, y puede ser reutilizado por cualquier flujo (como el Coordinador) cada vez que se necesite redactar algo.",
+        "height": 1216,
+        "width": 740,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1824,
+        128
+      ],
+      "id": "23a16f71-823c-41f9-9173-a95b192c3c39",
+      "name": "Sticky Note - Resumen del flujo"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "query": "Create a twitter post promoting my new Youtube tutorial on creating n8n AI Agents"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d018ced9-c824-4f3e-8c40-b8b3a9644f1c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "21c01bb5c5f3f34d6e572cf61183391f18fedb8ad88d29888d48ec9c5f89b544"
+  },
+  "id": "zwTkRJJdotjFFTnn",
+  "tags": []
+}
