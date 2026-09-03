@@ -1,0 +1,164 @@
+@font-face {
+  font-family: "Aptos";
+  src: url("file:///Applications/Microsoft%20Word.app/Contents/Resources/DFonts/Aptos.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Aptos";
+  src: url("file:///Applications/Microsoft%20Word.app/Contents/Resources/DFonts/Aptos-Italic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Aptos";
+  src: url("file:///Applications/Microsoft%20Word.app/Contents/Resources/DFonts/Aptos-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Aptos";
+  src: url("file:///Applications/Microsoft%20Word.app/Contents/Resources/DFonts/Aptos-Bold-Italic.ttf") format("truetype");
+  font-weight: 700;
+  font-style: italic;
+}
+
+@page {
+  size: A4;
+  margin: 18mm 16mm;
+}
+
+html {
+  font-size: 12px;
+}
+
+body {
+  font-family: "Aptos", "Segoe UI", Arial, sans-serif;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #1f2937;
+  max-width: none;
+  margin: 0 auto;
+  padding: 0;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: "Aptos", "Segoe UI", Arial, sans-serif;
+  color: #111827;
+  line-height: 1.2;
+  margin-top: 1.1em;
+  margin-bottom: 0.45em;
+  page-break-after: avoid;
+}
+
+h1 {
+  font-size: 21px;
+  margin-top: 0;
+  padding-bottom: 0.2em;
+  border-bottom: 1px solid #d1d5db;
+}
+
+h2 {
+  font-size: 16px;
+  padding-bottom: 0.12em;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+h3 {
+  font-size: 13px;
+}
+
+h4 {
+  font-size: 12px;
+}
+
+p,
+li {
+  font-size: 12px;
+}
+
+p,
+ul,
+ol {
+  margin-top: 0.45em;
+  margin-bottom: 0.65em;
+}
+
+li + li {
+  margin-top: 0.14em;
+}
+
+code,
+pre,
+tt {
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+}
+
+code {
+  font-size: 10.5px;
+  background: #f3f4f6;
+  padding: 0.08em 0.35em;
+  border-radius: 3px;
+}
+
+pre {
+  font-size: 10.5px;
+  line-height: 1.35;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 10px 12px;
+  overflow: visible;
+  page-break-inside: avoid;
+}
+
+pre code {
+  background: transparent;
+  padding: 0;
+  font-size: inherit;
+}
+
+blockquote {
+  margin: 0.8em 0;
+  padding: 0.2em 0 0.2em 0.9em;
+  color: #4b5563;
+  border-left: 3px solid #d1d5db;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid #e5e7eb;
+  margin: 1.2em 0;
+}
+
+a {
+  color: #0f4c81;
+  text-decoration: none;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.8em 0;
+  font-size: 11px;
+}
+
+th,
+td {
+  border: 1px solid #d1d5db;
+  padding: 6px 8px;
+  vertical-align: top;
+}
+
+th {
+  background: #f3f4f6;
+  text-align: left;
+}

@@ -3,60 +3,132 @@
   "nodes": [
     {
       "parameters": {
-        "updates": [
-          "message"
-        ],
-        "additionalFields": {}
+        "content": "## 🤖 Flujo: Agente Coordinador de CRM (Chatbot)\n\n**¿Qué hace este flujo?**\nEste es un **chatbot con inteligencia artificial** que actúa como \"recepcionista\" o coordinador central. Cuando alguien le escribe un mensaje, el agente decide qué hacer:\n\n1. Si preguntan por **un cliente en específico** (nombre, email o ID) → consulta el CRM.\n2. Si preguntan por **números o estadísticas** (cuántos clientes hay, cuántos activos, ingresos totales) → calcula y responde con datos exactos del CRM.\n3. Si piden **ayuda para redactar contenido** (emails, campañas de marketing) → delega la tarea a otro sub-agente especializado en contenido.\n4. Si la pregunta **no tiene nada que ver** con CRM → responde amablemente que solo puede ayudar con temas de clientes.\n\n**Nivel:** Básico-Intermedio. Piensa en este flujo como un \"jefe de equipo\" (AI Agent) que no hace todo el trabajo él mismo, sino que llama a los especialistas correctos (sub-flujos) según lo que se necesite.",
+        "height": 368,
+        "width": 2148,
+        "color": 4
       },
-      "type": "n8n-nodes-base.telegramTrigger",
-      "typeVersion": 1.2,
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
       "position": [
-        -560,
-        -32
+        -528,
+        -656
       ],
-      "id": "a499bcdd-a22e-4dd7-8e67-30494e57745f",
-      "name": "Telegram Trigger",
-      "webhookId": "c6aff8db-4a2c-43cc-ada6-b8f5b16bbe6e",
-      "credentials": {
-        "telegramApi": {
-          "id": "IcSOnEUcm0gcBPjo",
-          "name": "Telegram account"
-        }
-      }
+      "id": "2d65a9e8-a5fd-47c1-8ce0-bc12e13eab2a",
+      "name": "Sticky Note - Overview"
     },
     {
       "parameters": {
-        "promptType": "define",
-        "text": "={{ $json.message.text }}",
+        "content": "### 1️⃣ When chat message received\n\n**¿Qué es?** El punto de partida (disparador) del flujo.\n\n**¿Qué hace?** Este nodo \"escucha\" cuando un usuario escribe un mensaje en el chat (por ejemplo, en una ventana de chat integrada o widget). Cada mensaje nuevo hace que el flujo se ejecute.\n\n**Piensa en esto como:** el timbre de la puerta: cada vez que alguien toca (escribe), el flujo se activa para atenderlo.",
+        "height": 592,
+        "width": 444,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -528,
+        -272
+      ],
+      "id": "16f8793d-c4fd-45fa-82c4-6486f244fa63",
+      "name": "Sticky Note - Chat Trigger"
+    },
+    {
+      "parameters": {
+        "content": "### 2️⃣ AI Agent — El Coordinador Maestro\n\n**¿Qué es?** El cerebro del flujo. Es un agente de IA que recibe el mensaje del usuario y decide qué acción tomar según sus instrucciones (el \"system message\").\n\n**¿Qué hace exactamente?**\n- Detecta la **intención** del usuario: ¿pregunta por un cliente puntual? ¿pide una estadística? ¿pide contenido de marketing? ¿o no tiene relación con CRM?\n- Según la intención, **llama a la herramienta correcta** (no responde por su cuenta con datos inventados):\n  - Pregunta por cliente o números → usa la herramienta **Sub_WF_CRM**.\n  - Pide redactar emails/campañas → usa la herramienta **Call 'SW_Content_Creation'**.\n  - Nada relacionado a CRM → responde amablemente que solo puede ayudar con temas de clientes.\n- Redacta la respuesta final en un tono profesional, claro y en el mismo idioma del usuario, **sin mostrar JSON ni detalles técnicos**.\n\n**Necesita 3 apoyos conectados por debajo:**\n- Un modelo de lenguaje (OpenAI Chat Model) que le da la capacidad de \"pensar\" y redactar texto.\n- Una memoria (Simple Memory) para recordar el hilo de la conversación.\n- Dos \"herramientas\" (sub-flujos) que puede invocar cuando las necesita.\n\n💡 Importante: el AI Agent **nunca inventa datos** de clientes ni números; siempre debe pedirlos a las herramientas conectadas.",
+        "height": 588,
+        "width": 1684,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        -272
+      ],
+      "id": "151f92e9-1bb2-429e-9be4-6fb6c0768994",
+      "name": "Sticky Note - AI Agent"
+    },
+    {
+      "parameters": {
+        "content": "### 🛠️ Sub_WF_CRM (Herramienta / Sub-flujo)\n\n**¿Qué es?** Un sub-flujo de n8n (otro workflow completo) conectado como **herramienta** que el AI Agent puede \"llamar\" cuando lo necesita.\n\n**¿Qué hace?** Se conecta a la base de datos del CRM y puede traer:\n- Datos de **un cliente específico** (nombre, número de cliente, facturas, monto, fecha).\n- Datos **agregados/estadísticos** (total de clientes, clientes activos, totales por plan, etc.)\n\n**Piensa en esto como:** el especialista del área de \"Base de Datos de Clientes\" al que el coordinador (AI Agent) le pregunta cuando necesita información real, en vez de inventarla.\n\n💡 El AI Agent solo decide **cuándo** llamarlo; quien realmente busca los datos es este sub-flujo.",
+        "height": 608,
+        "width": 704,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        272,
+        336
+      ],
+      "id": "94be2c36-44ce-4fd1-930c-d80d58065f67",
+      "name": "Sticky Note - Sub_WF_CRM"
+    },
+    {
+      "parameters": {
+        "content": "### 🛠️ Call 'SW_Content_Creation' (Herramienta / Sub-flujo)\n\n**¿Qué es?** Otro sub-flujo conectado como herramienta, especializado en **creación de contenido**.\n\n**¿Qué hace?** Cuando el usuario pide ayuda para redactar emails, textos de marketing o campañas para promocionar productos/servicios, el AI Agent delega esa tarea a este sub-agente especializado, en vez de intentar redactarlo él mismo desde cero.\n\n**Piensa en esto como:** el equipo de \"Marketing y Redacción\" al que el coordinador le pasa la tarea cuando el pedido es sobre contenido, no sobre datos de clientes.",
+        "height": 612,
+        "width": 624,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        992,
+        336
+      ],
+      "id": "02001655-92d6-47db-9713-910061526a5f",
+      "name": "Sticky Note - Call SW_Content_Creation"
+    },
+    {
+      "parameters": {
+        "content": "### 🔄 Resumen del flujo completo\n\n**When chat message received** → llega el mensaje del usuario\n     ↓\n**AI Agent** (con ayuda de OpenAI Chat Model + Simple Memory) → analiza qué quiere el usuario\n     ↓\nSegún la intención, el AI Agent llama a UNA de estas herramientas:\n- **Sub_WF_CRM** → si pide datos de un cliente o estadísticas del CRM\n- **Call 'SW_Content_Creation'** → si pide redactar contenido/marketing\n- (ninguna) → si la pregunta no es sobre CRM, responde directamente y con amabilidad\n     ↓\n**Respuesta final** → el AI Agent devuelve una respuesta clara, profesional y en el idioma del usuario, sin mostrar JSON ni detalles técnicos.\n\n✅ Idea clave: este flujo es un **\"router inteligente\"**. El AI Agent no hace todo el trabajo, sino que identifica la necesidad y llama al sub-flujo correcto para obtener información real y confiable.",
+        "height": 612,
+        "width": 788,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -528,
+        336
+      ],
+      "id": "599d0e97-26e2-4862-8de4-16f82a163c60",
+      "name": "Sticky Note - Resumen del flujo"
+    },
+    {
+      "parameters": {
         "options": {
-          "systemMessage": ""
+          "systemMessage": "=ROLE\nYou are the Master Coordinator Agent.\nYour task is to receive and interpret user messages, determine whether they involve CRM information or analytics, and coordinate the correct action to provide an accurate and human-friendly response.\n\nGOAL\n- When the user asks for information about a specific customer (by name, email, or CustomerID), call the Sub_WF_CRM subworkflow.\n- When the user asks for analytics or totals (e.g. number of customers, number of active customers, total spending, averages, top plans), you must request or calculate the **exact value** using the data from the Sub_WF_CRM subworkflow or CRM base, and present it in a clear and professional way.\n- When the request is unrelated to CRM, respond politely and redirect to CRM-related insights.\n\nTOOLS\n- Sub_WF_CRM → A sub-agent connected to the CRM database that can retrieve both:\n  - Individual customer data, and\n  - Aggregated information (e.g. total number of customers, active customers, totals per plan, etc.)\n  Returns data in JSON format with fields like:\n  {\n  \"NumeroDeCliente\": \"\",\n  \"Nombre\": \"\",\n  \"NFactura\": \"\",\n  \"Monto\": \"\",\n  \"Fecha\": \"\"\n}\n\n- SW_Content_Creation → A sub-agent that can help you to write emails, content, or marketing campaigns to position our products/services or achieve some actions in customers.\n\nBEHAVIOR\n1. **Intent Detection**\n   - **Lookup intent:** The user refers to a single customer (name, email, or ID).  \n     → Call Sub_WF_CRM and return a personalized summary.\n   - **Analytical intent:** The user asks for totals, counts, or insights (e.g. “How many customers?”, “How many active customers?”, “What’s the total revenue?”).  \n     → Retrieve or calculate the exact value from the CRM data (via Sub_WF_CRM or its connected database).\n     → Present the numeric result clearly and conversationally.\n   - **Non-CRM intent:** Respond politely that you can only handle customer or CRM-related information, and offer to help with that instead.\n   - If the user is looking for assistance with content creation, mail drafts, or marketing campaing, you should call the SW_Content_Creation sub agent always. \n\n2. **Response Construction**\n   - **For lookups:** Use the Sub_WF_CRM result to summarize the customer’s key details (name, plan, location, contact info, status, and spending).\n   - **For analytics:** If the CRM provides numeric data, include exact values in your response.  \n     Example: “There are currently 128 customers registered, of which 92 are active.”  \n     If the metric is unavailable, indicate it politely without deflecting responsibility, e.g.:\n     “The CRM connection didn’t return the value right now, but I can try again or show the latest customer records.”\n   - Keep every response professional, short, and human-like.\n   - Never include technical or JSON details in user-facing text.\n\n3. **Tone and Output**\n   - Use a confident, helpful, and conversational tone.\n   - Write in the same language as the user.\n   - Avoid filler phrases or over-hedging (“I think”, “maybe”).\n   - Always provide context or interpretation that adds value to the number (e.g., “Active customers represent about 70% of the total base.”).\n\nEXAMPLES\n\nUser: “How many customers do we have?”\n→ Action: CRM Analysis\n→ Response:\n“We currently have **245 customers** registered in the CRM.”\n\nUser: “How many active customers?”\n→ Action: CRM Analysis\n→ Response:\n“There are **192 active customers** in total — most of them subscribed to the Premium plan.”\n\nUser: “Show me information for alice@mail.com”\n→ Action: Call Sub_WF_CRM with “alice@mail.com”\n→ Response:\n“Customer **Alice Johnson** (ID: CUST001) from **New York** is active on the **Premium plan**. Contact: alice@mail.com | Phone: 555-1001 | Total spent: $1,200.50.”\n\nUser: “What promotions are available?”\n→ Action: None (non-CRM)\n→ Response:\n“My focus is on CRM records and customer analytics. I can share customer data or trends if you’d like.”\n\nCONSTRAINTS\n- Use CRM data whenever available to provide exact values (especially for counts, totals, and active/inactive metrics).\n- Never fabricate customer or numeric data.\n- Do not output JSON or technical details to the user.\n- Always respond in a clear, confident, and professional tone.\n"
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
       "position": [
-        -240,
-        -32
+        1040,
+        32
       ],
-      "id": "8639a67f-a1b0-467b-b7da-f092418e3947",
+      "id": "f26fecc6-15e4-4605-9e7f-5098e7c4edcd",
       "name": "AI Agent"
     },
     {
       "parameters": {
         "model": {
           "__rl": true,
+          "value": "gpt-4.1-mini",
           "mode": "list",
-          "value": "gpt-4.1-mini"
+          "cachedResultName": "gpt-4.1-mini"
         },
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        -352,
-        192
+        720,
+        208
       ],
-      "id": "220bdfb3-3174-4a87-a6df-e3a15062a73f",
+      "id": "2de20af7-d7a8-4b1e-b5cf-6e95a8fb657e",
       "name": "OpenAI Chat Model",
       "credentials": {
         "openAiApi": {
@@ -71,6 +143,7 @@
           "__rl": true,
           "value": "ITyg83UXePJpH8gB",
           "mode": "list",
+          "cachedResultUrl": "/workflow/ITyg83UXePJpH8gB",
           "cachedResultName": "Sub_WF_CRM"
         },
         "workflowInputs": {
@@ -85,50 +158,67 @@
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2.2,
       "position": [
-        -16,
-        224
+        656,
+        752
       ],
-      "id": "27857e20-1d18-4cec-8721-9d9a33920cae",
-      "name": "Call n8n Workflow Tool"
+      "id": "715a3dd2-7411-4c49-af6d-d79c45ac0012",
+      "name": "Sub_WF_CRM"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        976,
+        208
+      ],
+      "id": "8b640809-a71b-4a87-8334-7961556c4976",
+      "name": "Simple Memory"
     },
     {
       "parameters": {
-        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
-        "text": "={{ $json.output }}",
-        "additionalFields": {
-          "appendAttribution": false
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -416,
+        80
+      ],
+      "id": "0aba4f41-b09b-45da-a47b-0ae871db7c3b",
+      "name": "When chat message received",
+      "webhookId": "40b6154e-15dc-4f44-ab9f-65d399035a00"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "zwTkRJJdotjFFTnn",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/zwTkRJJdotjFFTnn",
+          "cachedResultName": "SW_Content_Creation"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
         }
       },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
       "position": [
-        112,
-        -32
+        1344,
+        736
       ],
-      "id": "0badde94-7003-4028-83a6-1195ec44f82a",
-      "name": "Send a text message",
-      "webhookId": "d928f6ee-1167-46a7-b72e-52583fd22d7a",
-      "credentials": {
-        "telegramApi": {
-          "id": "IcSOnEUcm0gcBPjo",
-          "name": "Telegram account"
-        }
-      }
+      "id": "916c8f62-b9e6-4699-bd2c-165f47e0e9fb",
+      "name": "Call 'SW_Content_Creation'"
     }
   ],
   "pinData": {},
   "connections": {
-    "Telegram Trigger": {
-      "main": [
-        [
-          {
-            "node": "AI Agent",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "OpenAI Chat Model": {
       "ai_languageModel": [
         [
@@ -140,7 +230,7 @@
         ]
       ]
     },
-    "Call n8n Workflow Tool": {
+    "Sub_WF_CRM": {
       "ai_tool": [
         [
           {
@@ -151,23 +241,45 @@
         ]
       ]
     },
-    "AI Agent": {
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
       "main": [
         [
           {
-            "node": "Send a text message",
+            "node": "AI Agent",
             "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'SW_Content_Creation'": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
             "index": 0
           }
         ]
       ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "943c865a-88da-4caf-aff1-80c1368fb69a",
+  "versionId": "43d89f6e-dfec-416d-a62f-620c3e87072a",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "21c01bb5c5f3f34d6e572cf61183391f18fedb8ad88d29888d48ec9c5f89b544"

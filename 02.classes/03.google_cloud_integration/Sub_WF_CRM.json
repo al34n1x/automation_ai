@@ -10,8 +10,8 @@
       "name": "When Executed by Another Workflow",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "position": [
-        -96,
-        320
+        -80,
+        624
       ]
     },
     {
@@ -26,8 +26,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        32,
-        560
+        672,
+        816
       ],
       "id": "62a4b5b6-9a60-46bf-be19-400dfbec512d",
       "name": "OpenAI Chat Model",
@@ -59,8 +59,8 @@
       "type": "n8n-nodes-base.googleSheetsTool",
       "typeVersion": 4.7,
       "position": [
-        288,
-        528
+        1200,
+        832
       ],
       "id": "2fb8b98b-33df-4c93-b926-429f0424d739",
       "name": "Get row(s) in sheet in Google Sheets",
@@ -76,17 +76,113 @@
         "promptType": "define",
         "text": "={{ $json.query }}",
         "options": {
-          "systemMessage": ""
+          "systemMessage": "=You are a customer information lookup agent.\n\nGOAL\nReceive a query with a customer identifier (for example: email, CustomerID, or name). Search the CRM data source and return ONLY the requested customer’s information as a JSON object.\n\nREQUIREMENTS\n1) Input will specify a customer identifier such as CustomerID, email, or name.\n2) Find the matching customer in the CRM.\n3) Return ONLY one customer object in JSON format. Do not return explanations, text, markdown, or code fences.\n\nOUTPUT FORMAT\nThe JSON object must contain exactly these fields:\n{\n  \"NumeroDeCliente\": \"\",\n  \"Nombre\": \"\",\n  \"NFactura\": \"\",\n  \"Monto\": \"\",\n  \"Fecha\": \"\"\n}\n\n\n\nCONTENT RULES\n- Values must be taken exactly from the CRM data source.\n- If a field is missing in the source, leave it as an empty string \"\".\n- If the customer does not exist, return:\n  {\n  \"NumeroDeCliente\": \"\",\n  \"Nombre\": \"\",\n  \"NFactura\": \"\",\n  \"Monto\": \"\",\n  \"Fecha\": \"\"\n}\n- Do not invent or hallucinate data.\n- Do not return multiple matches. If more than one match is possible, return the first exact match.\n\nCRITICAL\n- Output must be valid JSON, one single object, no line breaks, no markdown, no extra text.\n- Never include explanations or commentary; output ONLY the JSON object.\n"
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2.2,
       "position": [
-        128,
-        320
+        896,
+        64
       ],
       "id": "61f30ac6-65a7-49dd-bd1b-a4f4ba080db8",
-      "name": "AI Agent"
+      "name": "Agente CRM"
+    },
+    {
+      "parameters": {
+        "content": "## 🔎 Sub-flujo: Sub_WF_CRM (Búsqueda de un cliente)\n\n**¿Qué hace este flujo?**\nEste es un **sub-workflow** (un flujo \"ayudante\") que NO se ejecuta solo: es llamado por otro flujo principal (por ejemplo, el \"AI Agent Coordinador\") cuando alguien pregunta por un cliente en específico.\n\n**En pocas palabras:**\n1. Recibe una consulta (por ejemplo, un email, nombre o ID de cliente).\n2. Un agente de IA busca ese cliente dentro de una hoja de Google Sheets que funciona como CRM (base de datos de clientes).\n3. Devuelve **solo los datos de ese cliente**, en un formato ordenado (JSON), sin inventar ni agregar información extra.\n\n**Nivel:** Básico-Intermedio. Piensa en este flujo como un \"empleado del archivo\" al que le dicen un nombre y él va, busca la ficha exacta, y la entrega — nada más, nada menos.",
+        "height": 588,
+        "width": 1948,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        -1104
+      ],
+      "id": "c798ff2d-f89b-4880-b179-9b72d1e84d6a",
+      "name": "Sticky Note - Overview"
+    },
+    {
+      "parameters": {
+        "content": "### 1️⃣ When Executed by Another Workflow\n\n**¿Qué es?** El punto de entrada especial para **sub-workflows**.\n\n**¿Qué hace?** Este nodo no se activa por sí solo (no tiene un horario ni un chat propio). En cambio, **espera a que otro flujo lo llame** y le envíe datos (en este caso, la consulta con el identificador del cliente: nombre, email o ID).\n\n**Modo `passthrough`:** significa que los datos que le envía el flujo \"padre\" pasan tal cual, sin transformarlos, directo al siguiente nodo.\n\n**Piensa en esto como:** un empleado que solo trabaja cuando su jefe (el flujo principal) le entrega una tarea con instrucciones específicas.",
+        "height": 796,
+        "width": 796,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        288
+      ],
+      "id": "afbe74e7-7826-4837-b008-edd5ce6d6ef7",
+      "name": "Sticky Note - Trigger"
+    },
+    {
+      "parameters": {
+        "content": "### 2️⃣ Agente CRM — El buscador especializado\n\n**¿Qué es?** Un agente de IA cuya única tarea es **buscar la información de UN cliente** y devolverla en un formato exacto.\n\n**¿Qué hace?**\n- Recibe la consulta (`$json.query`) que llegó desde el flujo principal, por ejemplo: \"alice@mail.com\" o \"CUST001\".\n- Usa la herramienta **Get row(s) in sheet in Google Sheets** para revisar la base de datos y encontrar la fila que coincide.\n- Devuelve **SOLO un objeto JSON**, sin explicaciones ni texto adicional, con estos campos:\n```\n{\n  \"NumeroDeCliente\": \"\",\n  \"Nombre\": \"\",\n  \"NFactura\": \"\",\n  \"Monto\": \"\",\n  \"Fecha\": \"\"\n}\n```\n\n**Reglas importantes que sigue:**\n- Si un dato no existe, lo deja vacío (`\"\"`), nunca lo inventa.\n- Si el cliente no existe, devuelve el mismo JSON pero con todos los campos vacíos.\n- Si hay varias coincidencias, toma solo la primera exacta.\n\n**Necesita 2 apoyos conectados por debajo:**\n- Un modelo de lenguaje (OpenAI Chat Model) que le da la capacidad de \"pensar\".\n- Una herramienta (Get row(s) in sheet) para consultar la hoja de cálculo.\n\n💡 A diferencia del \"AI Agent Coordinador\" (que conversa con el usuario final), este agente **solo entrega datos en bruto (JSON)**, listo para que otro flujo los use.",
+        "height": 764,
+        "width": 1940,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        -496
+      ],
+      "id": "f62a7fa4-d184-4691-87a0-e8729502f5a8",
+      "name": "Sticky Note - Agente CRM"
+    },
+    {
+      "parameters": {
+        "content": "### 🧠 OpenAI Chat Model\n\n**¿Qué es?** El modelo de lenguaje (LLM) que le da inteligencia al \"Agente CRM\".\n\n**¿Qué hace?** Es el motor que interpreta la consulta recibida (por ejemplo, entender que \"CUST001\" es un ID de cliente) y decide cómo usar la herramienta de Google Sheets para encontrar la fila correcta. Usa el modelo **gpt-4.1-mini** (rápido y económico).\n\n**Piensa en esto como:** el motor del auto. El Agente CRM es quien conduce y decide qué buscar, pero este nodo es lo que hace que el auto realmente avance.\n\n⚠️ Requiere una credencial de OpenAI (API Key) ya conectada.",
+        "height": 792,
+        "width": 428,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        448,
+        288
+      ],
+      "id": "169b02b4-491a-4934-a0bc-f005bc9f4f01",
+      "name": "Sticky Note - OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "content": "### 🛠️ Get row(s) in sheet in Google Sheets (Herramienta)\n\n**¿Qué es?** Una herramienta de Google Sheets conectada al Agente CRM, no un paso fijo del flujo — el agente decide **cuándo y cómo usarla**.\n\n**¿Qué hace?** Se conecta a la hoja de cálculo llamada \"CRM\" (pestaña \"Sheet1\") y **busca/trae filas** que coincidan con lo que el Agente CRM le pida (por ejemplo, filtrar por email, nombre o número de cliente).\n\n**Piensa en esto como:** el archivero físico de fichas de clientes. El Agente CRM le dice \"búscame la ficha de Alice\", y esta herramienta va, la busca en el cajón correcto (la hoja de Google Sheets) y se la entrega.\n\n⚠️ Requiere una credencial de Google Sheets (OAuth2) ya conectada.",
+        "height": 796,
+        "width": 672,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        896,
+        288
+      ],
+      "id": "d911880e-d0f8-4e47-9fa6-34a46fd02036",
+      "name": "Sticky Note - Get rows"
+    },
+    {
+      "parameters": {
+        "content": "### 🔄 Resumen del flujo completo\n\n**When Executed by Another Workflow** → otro flujo (por ejemplo el Coordinador Maestro) llama a este sub-flujo y le pasa una consulta (`query`), como un email o ID de cliente\n     ↓\n**Agente CRM** (con ayuda de OpenAI Chat Model + Get row(s) in sheet) → busca al cliente en la hoja de Google Sheets \"CRM\"\n     ↓\n**Resultado** → devuelve UN objeto JSON con los datos del cliente encontrado (o vacío si no existe), listo para que el flujo principal lo use y arme una respuesta amigable para el usuario final\n\n✅ Idea clave: este sub-flujo es un **\"módulo especializado\"** que hace una sola cosa muy bien — buscar un cliente — y siempre devuelve un formato de datos predecible (JSON), sin inventar información ni agregar texto extra. Esto permite que otros flujos (como el Coordinador) lo reutilicen fácilmente como si fuera una función.",
+        "height": 320,
+        "width": 620,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        960,
+        1296
+      ],
+      "id": "30e17e8e-2b1f-4292-8f73-354146d7196d",
+      "name": "Sticky Note - Resumen del flujo"
     }
   ],
   "pinData": {},
@@ -95,7 +191,7 @@
       "main": [
         [
           {
-            "node": "AI Agent",
+            "node": "Agente CRM",
             "type": "main",
             "index": 0
           }
@@ -106,7 +202,7 @@
       "ai_languageModel": [
         [
           {
-            "node": "AI Agent",
+            "node": "Agente CRM",
             "type": "ai_languageModel",
             "index": 0
           }
@@ -117,7 +213,7 @@
       "ai_tool": [
         [
           {
-            "node": "AI Agent",
+            "node": "Agente CRM",
             "type": "ai_tool",
             "index": 0
           }
@@ -125,11 +221,11 @@
       ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "4febf2a3-2e3a-493a-bb3a-17f69a5bfa32",
+  "versionId": "eb526632-4440-4aef-8257-3be6ac933951",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "21c01bb5c5f3f34d6e572cf61183391f18fedb8ad88d29888d48ec9c5f89b544"

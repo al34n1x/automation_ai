@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Lab: Agente con RAG en n8n usando Telegram y Pinecone</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="05.telegram_rag_pinecone_workshop.css" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Lab: Agente con RAG en n8n usando Telegram y
+Pinecone</h1>
+</header>
+<h1 id="lab-agente-con-rag-en-n8n-usando-telegram-y-pinecone">Lab:
+Agente con RAG en n8n usando Telegram y Pinecone</h1>
+<p>En este laboratorio vas a construir un agente básico en
+<code>n8n</code> que:</p>
+<ol type="1">
+<li>recibe preguntas desde <code>Telegram</code></li>
+<li>consulta una base vectorial en <code>Pinecone</code></li>
+<li>responde usando un <code>AI Agent</code></li>
+</ol>
+<h2 id="objetivo">Objetivo</h2>
+<p>Al finalizar este lab, tendrás un workflow funcional llamado
+<code>Telegram RAG Agent</code> que responderá preguntas desde Telegram
+usando información ya cargada en Pinecone.</p>
+<h2 id="importante">Importante</h2>
+<p>En este laboratorio <strong>no vas a cargar documentos</strong> a
+Pinecone.</p>
+<p>La base vectorial ya está provisionada y ya contiene información. Tu
+trabajo es construir únicamente el agente que consulta esa base.</p>
+<h2 id="requisitos">Requisitos</h2>
+<p>Antes de empezar, asegúrate de tener:</p>
+<ol type="1">
+<li>acceso a <code>n8n</code></li>
+<li>credencial de <code>Telegram</code> en n8n</li>
+<li>credencial de <code>OpenAI</code> en n8n</li>
+<li>credencial de <code>Pinecone</code> en n8n</li>
+<li>nombre del <code>Index</code> de Pinecone</li>
+<li>nombre del <code>Namespace</code> de Pinecone</li>
+<li>el modelo de embeddings que corresponde a ese índice</li>
+</ol>
+<h2 id="regla-clave">Regla clave</h2>
+<p>Debes usar el mismo modelo de embeddings que corresponde al índice
+provisionado.</p>
+<p>No cambies el modelo por tu cuenta. Si no sabes cuál usar, pregunta
+al instructor.</p>
+<hr />
+<h2 id="resultado-final-esperado">Resultado final esperado</h2>
+<p>Tu workflow debe quedar así:</p>
+<pre class="text"><code>Telegram Trigger
+   -&gt; AI Agent
+        -&gt; OpenAI Chat Model
+        -&gt; Pinecone Vector Store
+             -&gt; Embeddings OpenAI
+   -&gt; Telegram</code></pre>
+<hr />
+<h2 id="parte-1-crear-el-bot-de-telegram">Parte 1: Crear el bot de
+Telegram</h2>
+<p>Si ya tienes un bot creado, puedes pasar a la Parte 2.</p>
+<h3 id="paso-1-crear-el-bot">Paso 1. Crear el bot</h3>
+<ol type="1">
+<li>Abre Telegram.</li>
+<li>Busca <code>@BotFather</code>.</li>
+<li>Envía <code>/start</code>.</li>
+<li>Envía <code>/newbot</code>.</li>
+<li>Elige:
+<ul>
+<li>un nombre para el bot</li>
+<li>un username que termine en <code>bot</code></li>
+</ul></li>
+<li>Copia el token que te entrega BotFather.</li>
+</ol>
+<h3 id="paso-2-crear-la-credencial-en-n8n">Paso 2. Crear la credencial
+en n8n</h3>
+<ol type="1">
+<li>En n8n, abre <code>Credentials</code>.</li>
+<li>Crea una credencial nueva de tipo <code>Telegram</code>.</li>
+<li>Pega el token del bot.</li>
+<li>Guarda la credencial.</li>
+</ol>
+<hr />
+<h2 id="parte-2-crear-el-workflow">Parte 2: Crear el workflow</h2>
+<h3 id="paso-1-crear-un-workflow-nuevo">Paso 1. Crear un workflow
+nuevo</h3>
+<ol type="1">
+<li>Haz clic en <code>New Workflow</code>.</li>
+<li>Guarda el workflow con el nombre:</li>
+</ol>
+<pre class="text"><code>Telegram RAG Agent</code></pre>
+<hr />
+<h2 id="parte-3-agregar-el-trigger-de-telegram">Parte 3: Agregar el
+trigger de Telegram</h2>
+<h3 id="paso-1-agregar-telegram-trigger">Paso 1. Agregar
+<code>Telegram Trigger</code></h3>
+<ol type="1">
+<li>Agrega el nodo <code>Telegram Trigger</code>.</li>
+<li>Selecciona tu credencial de Telegram.</li>
+<li>En <code>Updates</code>, selecciona:</li>
+</ol>
+<pre class="text"><code>Message</code></pre>
+<h3 id="qué-hace-este-nodo">Qué hace este nodo</h3>
+<p>Este nodo escucha los mensajes que llegan a tu bot de Telegram.</p>
+<hr />
+<h2 id="parte-4-agregar-el-agente">Parte 4: Agregar el agente</h2>
+<h3 id="paso-1-agregar-ai-agent">Paso 1. Agregar
+<code>AI Agent</code></h3>
+<ol type="1">
+<li>Agrega el nodo <code>AI Agent</code>.</li>
+<li>Conéctalo después de <code>Telegram Trigger</code>.</li>
+</ol>
+<h3 id="paso-2-configurar-el-texto-de-entrada">Paso 2. Configurar el
+texto de entrada</h3>
+<p>En el campo de input del agente, usa esta expresión:</p>
+<pre class="text"><code>={{ $json.message.text }}</code></pre>
+<h3 id="paso-3-configurar-el-system-message">Paso 3. Configurar el
+<code>System Message</code></h3>
+<p>Pega este prompt:</p>
+<pre class="text"><code>Eres un asistente del taller de n8n.
+
+Tu trabajo es responder preguntas usando únicamente la información recuperada desde Pinecone.
+
+Reglas:
+- Usa la base vectorial como fuente de verdad.
+- No inventes información.
+- Si no encuentras la respuesta en la base, responde:
+  &quot;No tengo esa información dentro del material disponible.&quot;
+- Responde siempre en español.
+- Sé claro, breve y útil.</code></pre>
+<h3 id="qué-hace-este-nodo-1">Qué hace este nodo</h3>
+<p>Este nodo recibe la pregunta del usuario, decide cuándo usar
+herramientas y genera la respuesta final.</p>
+<hr />
+<h2 id="parte-5-conectar-el-modelo-de-chat">Parte 5: Conectar el modelo
+de chat</h2>
+<h3 id="paso-1-agregar-openai-chat-model">Paso 1. Agregar
+<code>OpenAI Chat Model</code></h3>
+<ol type="1">
+<li>Agrega el subnodo <code>OpenAI Chat Model</code> al
+<code>AI Agent</code>.</li>
+<li>Selecciona tu credencial de OpenAI.</li>
+<li>Elige un modelo disponible.</li>
+</ol>
+<h3 id="configuración-sugerida">Configuración sugerida</h3>
+<p>Usa un modelo rápido y económico.</p>
+<p>Si ves un campo de temperatura, usa un valor bajo.</p>
+<h3 id="qué-hace-este-nodo-2">Qué hace este nodo</h3>
+<p>Es el modelo que redacta la respuesta final del agente.</p>
+<hr />
+<h2 id="parte-6-conectar-pinecone-como-herramienta">Parte 6: Conectar
+Pinecone como herramienta</h2>
+<h3 id="paso-1-agregar-pinecone-vector-store">Paso 1. Agregar
+<code>Pinecone Vector Store</code></h3>
+<ol type="1">
+<li>Agrega un nodo <code>Pinecone Vector Store</code>.</li>
+<li>Conéctalo al conector de herramientas del
+<code>AI Agent</code>.</li>
+</ol>
+<h3 id="paso-2-configurar-el-modo-de-operación">Paso 2. Configurar el
+modo de operación</h3>
+<p>En <code>Operation Mode</code>, selecciona:</p>
+<pre class="text"><code>Retrieve Documents (As Tool for AI Agent)</code></pre>
+<h3 id="paso-3-configurar-pinecone">Paso 3. Configurar Pinecone</h3>
+<p>Completa los campos así:</p>
+<ol type="1">
+<li><code>Credentials</code>: tu credencial de Pinecone</li>
+<li><code>Pinecone Index</code>: el índice indicado por el
+instructor</li>
+<li><code>Pinecone Namespace</code>: el namespace indicado por el
+instructor</li>
+<li><code>Limit</code>: <code>4</code></li>
+</ol>
+<h3 id="paso-4-configurar-nombre-y-descripción-de-la-herramienta">Paso
+4. Configurar nombre y descripción de la herramienta</h3>
+<p>Usa estos valores:</p>
+<p><code>Name</code></p>
+<pre class="text"><code>workshop_kb</code></pre>
+<p><code>Description</code></p>
+<pre class="text"><code>Usa esta herramienta para responder preguntas sobre el contenido del taller de n8n, RAG, Telegram y Pinecone.</code></pre>
+<h3 id="qué-hace-este-nodo-3">Qué hace este nodo</h3>
+<p>Este nodo permite que el agente busque fragmentos relevantes dentro
+de Pinecone antes de responder.</p>
+<hr />
+<h2 id="parte-7-conectar-embeddings">Parte 7: Conectar embeddings</h2>
+<h3 id="paso-1-agregar-embeddings-openai">Paso 1. Agregar
+<code>Embeddings OpenAI</code></h3>
+<ol type="1">
+<li>Agrega un subnodo <code>Embeddings OpenAI</code> al
+<code>Pinecone Vector Store</code>.</li>
+<li>Selecciona tu credencial de OpenAI.</li>
+<li>Elige el mismo modelo de embeddings que corresponde al índice
+provisionado.</li>
+</ol>
+<h3 id="qué-hace-este-nodo-4">Qué hace este nodo</h3>
+<p>Convierte la pregunta del usuario en un vector para poder buscar
+similitud semántica en Pinecone.</p>
+<hr />
+<h2 id="parte-8-enviar-la-respuesta-a-telegram">Parte 8: Enviar la
+respuesta a Telegram</h2>
+<h3 id="paso-1-agregar-el-nodo-telegram">Paso 1. Agregar el nodo
+<code>Telegram</code></h3>
+<ol type="1">
+<li>Agrega un nodo <code>Telegram</code>.</li>
+<li>Selecciona la misma credencial del bot.</li>
+<li>En la operación, elige:</li>
+</ol>
+<pre class="text"><code>Send Message</code></pre>
+<h3 id="paso-2-configurar-chat-id">Paso 2. Configurar
+<code>Chat ID</code></h3>
+<p>Usa esta expresión:</p>
+<pre class="text"><code>={{ $(&#39;Telegram Trigger&#39;).item.json.message.chat.id }}</code></pre>
+<h3 id="paso-3-configurar-text">Paso 3. Configurar
+<code>Text</code></h3>
+<p>Usa esta expresión:</p>
+<pre class="text"><code>={{ $json.output }}</code></pre>
+<h3 id="paso-4-conectar-el-flujo">Paso 4. Conectar el flujo</h3>
+<p>Conecta la salida principal de <code>AI Agent</code> al nodo
+<code>Telegram</code>.</p>
+<h3 id="qué-hace-este-nodo-5">Qué hace este nodo</h3>
+<p>Envía al usuario la respuesta generada por el agente.</p>
+<hr />
+<h2 id="parte-9-guardar-y-activar">Parte 9: Guardar y activar</h2>
+<h3 id="paso-1-guardar-el-workflow">Paso 1. Guardar el workflow</h3>
+<p>Guarda el workflow.</p>
+<h3 id="paso-2-activarlo">Paso 2. Activarlo</h3>
+<p>Activa el workflow para que Telegram pueda enviar mensajes al
+trigger.</p>
+<hr />
+<h2 id="parte-10-probar-el-agente">Parte 10: Probar el agente</h2>
+<p>Abre Telegram y escribe a tu bot.</p>
+<p>Prueba con preguntas como estas:</p>
+<ol type="1">
+<li><code>¿Qué significa RAG?</code></li>
+<li><code>¿Qué hace Pinecone en este flujo?</code></li>
+<li><code>¿Qué nodo recibe los mensajes de Telegram?</code></li>
+<li><code>¿Qué hace el AI Agent?</code></li>
+</ol>
+<h2 id="qué-deberías-observar">Qué deberías observar</h2>
+<ol type="1">
+<li>El mensaje entra por <code>Telegram Trigger</code>.</li>
+<li>El <code>AI Agent</code> procesa la pregunta.</li>
+<li>El agente consulta Pinecone.</li>
+<li>El bot responde en Telegram.</li>
+</ol>
+<hr />
+<h2 id="prueba-de-control">Prueba de control</h2>
+<p>Haz una pregunta que probablemente no esté en la base de
+conocimiento.</p>
+<p>Por ejemplo:</p>
+<pre class="text"><code>¿Cuál es el precio del curso?</code></pre>
+<p>El agente debería responder algo parecido a:</p>
+<pre class="text"><code>No tengo esa información dentro del material disponible.</code></pre>
+<p>Si el agente inventa una respuesta, revisa el prompt del sistema.</p>
+<hr />
+<h2 id="checklist-final">Checklist final</h2>
+<p>Antes de terminar, verifica:</p>
+<ol type="1">
+<li>el workflow está guardado</li>
+<li>el workflow está activo</li>
+<li>Telegram Trigger recibe mensajes</li>
+<li>AI Agent genera salida</li>
+<li>Pinecone usa el índice correcto</li>
+<li>Pinecone usa el namespace correcto</li>
+<li>Embeddings OpenAI usa el modelo correcto</li>
+<li>Telegram envía la respuesta final</li>
+</ol>
+<hr />
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="problema-1-no-llega-ningún-mensaje-desde-telegram">Problema 1.
+No llega ningún mensaje desde Telegram</h3>
+<p>Revisa:</p>
+<ol type="1">
+<li>que el workflow esté activo</li>
+<li>que la credencial de Telegram sea correcta</li>
+<li>que el bot sea el correcto</li>
+</ol>
+<h3 id="problema-2-telegram-trigger-no-funciona-en-self-hosted">Problema
+2. Telegram Trigger no funciona en self-hosted</h3>
+<p>Si n8n está autoalojado, revisa que la URL pública del webhook sea
+<code>HTTPS</code>.</p>
+<h3
+id="problema-3-el-agente-responde-que-no-sabe-todo-el-tiempo">Problema
+3. El agente responde que no sabe todo el tiempo</h3>
+<p>Revisa:</p>
+<ol type="1">
+<li>el índice</li>
+<li>el namespace</li>
+<li>el modelo de embeddings</li>
+<li>que la base realmente tenga contenido cargado</li>
+</ol>
+<h3 id="problema-4-el-agente-responde-cosas-inventadas">Problema 4. El
+agente responde cosas inventadas</h3>
+<p>Revisa:</p>
+<ol type="1">
+<li>el <code>System Message</code></li>
+<li>que Pinecone esté conectado como herramienta</li>
+<li>que el agente esté usando la salida de Pinecone</li>
+</ol>
+<hr />
+<h2 id="extensión-opcional">Extensión opcional</h2>
+<p>Si terminas antes, prueba una mejora:</p>
+<ol type="1">
+<li>agrega <code>Simple Memory</code> al <code>AI Agent</code></li>
+<li>cambia el prompt para que responda con más contexto</li>
+<li>ajusta <code>Limit</code> del vector store a <code>3</code> o
+<code>5</code></li>
+</ol>
+<hr />
+<p><a href="../../README.md">⬅ Back to Course Overview</a></p>
+</body>
+</html>
