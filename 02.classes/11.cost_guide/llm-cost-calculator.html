@@ -6,10 +6,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora de Costos LLM y n8n</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --accent: #4facfe;
+            --accent2: #00c6d7;
+            --ink: #1a202c;
+            --muted: #64748b;
+            --line: #e2e8f0;
+            --bg: #f8fafc;
+            --good: #16a34a;
+            --warn: #d97706;
+            --bad: #dc2626;
+            --c-llm: #667eea;
+            --c-n8n: #4facfe;
+            --c-hr: #f59e0b;
+            --c-buf: #94a3b8;
         }
 
         body {
@@ -17,223 +29,111 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+            color: var(--ink);
         }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
+        .container { max-width: 1400px; margin: 0 auto; background: #fff; border-radius: 20px; box-shadow: 0 25px 60px rgba(0, 0, 0, .15); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: #fff; padding: 30px; text-align: center; }
+        .header h1 { font-size: 2.3em; margin-bottom: 8px; }
+        .header p { opacity: .95; }
+        .badge { display: inline-block; margin-top: 12px; padding: 5px 14px; border-radius: 20px; background: rgba(255, 255, 255, .25); font-size: 13px; }
+        .main-content { padding: 30px; }
+
+        .section { background: var(--bg); border: 2px solid var(--line); border-radius: 15px; padding: 25px; margin-bottom: 25px; transition: border-color .3s; }
+        .section:hover { border-color: var(--accent); }
+        .section h2 { font-size: 1.5em; margin-bottom: 18px; border-bottom: 3px solid var(--accent); padding-bottom: 8px; display: inline-block; }
+        .hint { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+
+        label { font-weight: 600; color: #2d3748; margin-bottom: 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; display: block; }
+        select, input[type=number] { width: 100%; padding: 10px 12px; border: 2px solid var(--line); border-radius: 10px; font-size: 15px; background: #fff; transition: all .2s; }
+        select:focus, input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79, 172, 254, .15); }
+        input[type=range] { width: 100%; accent-color: var(--accent); }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-bottom: 18px; }
+
+        /* presets */
+        .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+        .chip { border: 2px solid var(--line); background: #fff; padding: 7px 14px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all .2s; }
+        .chip:hover { border-color: var(--accent); transform: translateY(-1px); }
+        .chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+        /* model rows */
+        .model-row { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 14px; transition: all .2s; }
+        .model-row:hover { border-color: var(--accent); box-shadow: 0 5px 15px rgba(79, 172, 254, .12); }
+        .model-row.off { opacity: .5; }
+        .model-top { display: grid; grid-template-columns: 2.4fr 1fr 1fr 1fr; gap: 14px; align-items: end; margin-bottom: 12px; }
+        .model-bottom { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1.3fr; gap: 14px; align-items: end; }
+        .cost-display { font-weight: 700; font-size: 16px; text-align: center; padding: 10px; background: #f1f5f9; border-radius: 8px; }
+        .cost-display small { display: block; font-weight: 400; color: var(--muted); font-size: 11px; }
+        .row-actions { display: flex; gap: 6px; justify-content: flex-end; }
+        .mini { border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 7px 10px; cursor: pointer; font-size: 13px; }
+        .mini:hover { border-color: var(--accent); }
+        .check { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; padding: 10px 0; }
+        .check input { width: 18px; height: 18px; accent-color: var(--accent); }
+        .tag { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; margin-left: 6px; }
+        .tag.oficial { background: #dcfce7; color: #166534; }
+        .tag.reportado { background: #fef3c7; color: #92400e; }
+        .tag.legacy { background: #fee2e2; color: #991b1b; }
+
+        .btn { background: linear-gradient(135deg, #4facfe 0%, #00c6d7 100%); color: #fff; padding: 11px 26px; border: none; border-radius: 25px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all .2s; margin: 6px; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(79, 172, 254, .35); }
+        .btn.ghost { background: #fff; color: var(--ink); border: 2px solid var(--line); }
+        .btn.ghost:hover { border-color: var(--accent); box-shadow: none; }
+
+        /* comparison */
+        .cmp-row { display: grid; grid-template-columns: 210px 1fr 130px 70px; gap: 12px; align-items: center; padding: 6px 0; font-size: 14px; border-bottom: 1px dashed var(--line); }
+        .cmp-row.current { background: #eff6ff; border-radius: 8px; padding: 6px 8px; font-weight: 700; }
+        .bar-wrap { background: #e2e8f0; border-radius: 6px; height: 14px; overflow: hidden; }
+        .bar { height: 100%; border-radius: 6px; background: linear-gradient(90deg, #4facfe, #667eea); transition: width .4s; }
+        .delta.good { color: var(--good); font-weight: 600; }
+        .delta.bad { color: var(--bad); font-weight: 600; }
+
+        .cost-box { padding: 12px; background: #fff; border: 1px solid var(--line); border-radius: 10px; text-align: center; font-weight: 600; }
+        .warn { color: var(--warn); font-size: 13px; margin-top: 6px; font-weight: 600; }
+
+        /* summary */
+        .summary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border-radius: 15px; padding: 28px; margin-bottom: 25px; }
+        .summary h2 { font-size: 1.5em; border-bottom: 3px solid #fff; padding-bottom: 8px; display: inline-block; margin-bottom: 20px; }
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; }
+        .summary-item { background: rgba(255, 255, 255, .12); padding: 16px; border-radius: 10px; text-align: center; }
+        .summary-item h3 { font-size: 12px; opacity: .85; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .summary-item .value { font-size: 1.7em; font-weight: 700; }
+        .summary-item.big { background: rgba(255, 255, 255, .25); }
+        .stack { display: flex; height: 26px; border-radius: 13px; overflow: hidden; margin: 22px 0 10px; background: rgba(255, 255, 255, .2); }
+        .stack div { transition: width .4s; }
+        .legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13px; }
+        .legend i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 6px; vertical-align: middle; }
+        .unit-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-top: 18px; }
+
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        .insights li { list-style: none; background: #fff; border-left: 4px solid var(--accent); padding: 10px 14px; border-radius: 8px; margin-bottom: 10px; font-size: 14px; line-height: 1.5; }
+        .insights li.tip { border-color: var(--good); }
+        .insights li.alert { border-color: var(--warn); }
+        svg text { font-family: inherit; }
+
+        details.section summary { cursor: pointer; font-weight: 700; font-size: 1.2em; }
+        table.prices { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 14px; }
+        table.prices th, table.prices td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; }
+        table.prices input { padding: 6px 8px; width: 90px; }
+        .sources { font-size: 12px; color: var(--muted); line-height: 1.6; margin-top: 12px; }
+        .sources a { color: var(--accent); }
+        .export-section { text-align: center; padding-top: 10px; }
+        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1a202c; color: #fff; padding: 10px 22px; border-radius: 25px; opacity: 0; pointer-events: none; transition: opacity .3s; font-size: 14px; z-index: 10; }
+        .toast.show { opacity: 1; }
+
+        @media (max-width: 900px) {
+            .model-top, .model-bottom, .two-col { grid-template-columns: 1fr 1fr; }
+            .cmp-row { grid-template-columns: 1fr 90px 60px; }
+            .cmp-row .bar-wrap { grid-column: 1 / -1; order: 5; }
         }
-
-        .header {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
+        @media (max-width: 560px) {
+            .model-top, .model-bottom, .two-col { grid-template-columns: 1fr; }
+            .main-content { padding: 16px; }
+            .header h1 { font-size: 1.7em; }
         }
-
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-
-        .header p {
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
-
-        .main-content {
-            padding: 40px;
-        }
-
-        .section {
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 30px;
-            transition: all 0.3s ease;
-        }
-
-        .section:hover {
-            border-color: #4facfe;
-            box-shadow: 0 10px 25px rgba(79, 172, 254, 0.1);
-        }
-
-        .section h2 {
-            color: #1a202c;
-            margin-bottom: 25px;
-            font-size: 1.8em;
-            border-bottom: 3px solid #4facfe;
-            padding-bottom: 10px;
-            display: inline-block;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        label {
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 8px;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        select,
-        input {
-            padding: 12px 15px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            background: white;
-        }
-
-        select:focus,
-        input:focus {
-            outline: none;
-            border-color: #4facfe;
-            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
-        }
-
-        .model-row {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
-            gap: 15px;
-            align-items: end;
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #e2e8f0;
-            transition: all 0.3s ease;
-        }
-
-        .model-row:hover {
-            border-color: #4facfe;
-            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.1);
-        }
-
-        .cost-display {
-            font-weight: bold;
-            font-size: 16px;
-            color: #2d3748;
-            text-align: center;
-            padding: 10px;
-            background: #f7fafc;
-            border-radius: 8px;
-        }
-
-        .summary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 15px;
-            padding: 30px;
-            margin-top: 30px;
-        }
-
-        .summary h2 {
-            color: white;
-            border-bottom: 3px solid white;
-            margin-bottom: 25px;
-        }
-
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-        }
-
-        .summary-item {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            backdrop-filter: blur(10px);
-        }
-
-        .summary-item h3 {
-            font-size: 14px;
-            opacity: 0.8;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .summary-item .value {
-            font-size: 2em;
-            font-weight: bold;
-        }
-
-        .btn {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 25px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 10px;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(79, 172, 254, 0.3);
-        }
-
-        .export-section {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 30px;
-            border-top: 2px solid #e2e8f0;
-        }
-
-        .toggle-btn {
-            background: #48bb78;
-            color: white;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .toggle-btn.disabled {
-            background: #a0aec0;
-        }
-
-        @media (max-width: 768px) {
-            .model-row {
-                grid-template-columns: 1fr;
-                gap: 10px;
-            }
-
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .header h1 {
-                font-size: 2em;
-            }
+        @media print {
+            body { background: #fff; padding: 0; }
+            .btn, .chips, .row-actions, .export-section, details, .mini { display: none !important; }
+            .container { box-shadow: none; }
         }
     </style>
 </head>
@@ -242,413 +142,613 @@
     <div class="container">
         <div class="header">
             <h1>🚀 Calculadora de Costos LLM y n8n</h1>
-            <p>Herramienta interactiva para estimar costos de implementación</p>
+            <p>Estima, compara y optimiza el costo mensual de tu automatización con IA</p>
+            <span class="badge">💲 Precios revisados: septiembre 2026 · todos los precios son editables</span>
         </div>
 
         <div class="main-content">
-            <!-- Sección LLM -->
+            <!-- Escenarios -->
             <div class="section">
-                <h2>📊 Configuración de Modelos LLM</h2>
-                <div id="llmModels">
-                    <!-- Los modelos se generarán dinámicamente -->
-                </div>
-                <button class="btn" onclick="addModel()">+ Agregar Modelo</button>
+                <h2>🎯 Empezá con un escenario</h2>
+                <p class="hint">Elegí un caso típico para precargar la calculadora y luego ajustá los números a tu realidad.</p>
+                <div class="chips" id="presets"></div>
             </div>
 
-            <!-- Sección n8n -->
+            <!-- LLM -->
+            <div class="section">
+                <h2>📊 Modelos LLM</h2>
+                <p class="hint">Indicá cuántas solicitudes por mes hacés y cuántos tokens usa cada una (≈ 1 token = 4 caracteres; 1.000 tokens ≈ 750 palabras). El costo se calcula en vivo.</p>
+                <div id="llmModels"></div>
+                <button class="btn" id="addModel">+ Agregar modelo</button>
+            </div>
+
+            <!-- Comparador -->
+            <div class="section">
+                <h2>⚖️ ¿Y si usaras otro modelo?</h2>
+                <p class="hint">Compara el mismo uso (solicitudes, tokens, caché y batch) de la fila elegida contra todos los modelos. Clic en “Usar” para cambiarlo.</p>
+                <div class="form-grid">
+                    <div>
+                        <label for="cmpRow">Fila a comparar</label>
+                        <select id="cmpRow"></select>
+                    </div>
+                    <div>
+                        <label for="cmpVendor">Proveedor</label>
+                        <select id="cmpVendor">
+                            <option value="">Todos</option>
+                            <option>Anthropic</option><option>OpenAI</option><option>Google</option><option>Otros</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="cmpList"></div>
+            </div>
+
+            <!-- n8n -->
             <div class="section">
                 <h2>⚙️ Configuración n8n</h2>
                 <div class="form-grid">
-                    <div class="form-group">
-                        <label>Tipo de Implementación</label>
-                        <select id="n8nType" onchange="updateN8nCosts()">
-                            <option value="">Seleccionar...</option>
-                            <option value="cloud-starter">n8n Cloud - Starter ($24/mes)</option>
-                            <option value="cloud-pro">n8n Cloud - Pro ($240/mes)</option>
-                            <option value="cloud-enterprise">n8n Cloud - Enterprise (desde $500/mes)</option>
-                            <option value="self-basic">Self-hosted - Básico</option>
-                            <option value="self-production">Self-hosted - Producción</option>
-                            <option value="self-enterprise">Self-hosted - Enterprise</option>
-                        </select>
+                    <div>
+                        <label for="n8nType">Tipo de implementación</label>
+                        <select id="n8nType"></select>
                     </div>
-
-                    <div class="form-group" id="executionsGroup" style="display:none;">
-                        <label>Ejecuciones Mensuales</label>
-                        <input type="number" id="executions" placeholder="ej: 10000" onchange="updateN8nCosts()">
+                    <div id="execGroup">
+                        <label for="executions">Ejecuciones mensuales</label>
+                        <input type="number" id="executions" min="0" placeholder="ej: 10000">
+                        <button class="mini" id="syncExec" style="margin-top:6px">↙ Usar solicitudes LLM totales</button>
                     </div>
-
-                    <div class="form-group" id="infraGroup" style="display:none;">
-                        <label>Proveedor de Infraestructura</label>
-                        <select id="infraProvider" onchange="updateN8nCosts()">
-                            <option value="">Seleccionar...</option>
-                            <option value="aws">Amazon Web Services</option>
-                            <option value="gcp">Google Cloud Platform</option>
-                            <option value="azure">Microsoft Azure</option>
-                            <option value="digitalocean">DigitalOcean</option>
-                            <option value="linode">Linode</option>
-                        </select>
+                    <div id="infraGroup">
+                        <label for="infraProvider">Proveedor de infraestructura</label>
+                        <select id="infraProvider"></select>
                     </div>
                 </div>
-
                 <div class="form-grid">
-                    <div class="cost-display" id="n8nCost">Costo n8n: $0/mes</div>
-                    <div class="cost-display" id="infraCost">Costo Infraestructura: $0/mes</div>
-                    <div class="cost-display" id="maintenanceCost">Mantenimiento: $0/mes</div>
+                    <div class="cost-box" id="n8nCost"></div>
+                    <div class="cost-box" id="infraCost"></div>
+                    <div class="cost-box" id="maintenanceCost"></div>
                 </div>
+                <div class="warn" id="n8nWarn"></div>
             </div>
 
-            <!-- Sección Personal -->
+            <!-- RRHH -->
             <div class="section">
-                <h2>👥 Recursos Humanos</h2>
+                <h2>👥 Recursos humanos</h2>
                 <div class="form-grid">
-                    <div class="form-group">
-                        <label>DevOps Engineer (Horas/mes)</label>
-                        <input type="number" id="devopsHours" value="0" onchange="updatePersonalCosts()">
+                    <div><label for="devopsHours">DevOps (horas/mes)</label><input type="number" id="devopsHours" min="0"></div>
+                    <div><label for="devopsRate">Tarifa DevOps ($/hora)</label><input type="number" id="devopsRate" min="0"></div>
+                    <div><label for="devHours">Developer (horas/mes)</label><input type="number" id="devHours" min="0"></div>
+                    <div><label for="devRate">Tarifa Developer ($/hora)</label><input type="number" id="devRate" min="0"></div>
+                </div>
+                <div class="cost-box" id="personalCost"></div>
+            </div>
+
+            <!-- Escenario -->
+            <div class="section">
+                <h2>🎚️ Crecimiento y margen</h2>
+                <div class="form-grid">
+                    <div>
+                        <label for="growth">Crecimiento mensual del uso LLM: <span id="growthVal"></span></label>
+                        <input type="range" id="growth" min="0" max="30" step="1">
                     </div>
-                    <div class="form-group">
-                        <label>Tarifa DevOps ($/hora)</label>
-                        <input type="number" id="devopsRate" value="60" onchange="updatePersonalCosts()">
-                    </div>
-                    <div class="form-group">
-                        <label>Developer (Horas/mes)</label>
-                        <input type="number" id="devHours" value="0" onchange="updatePersonalCosts()">
-                    </div>
-                    <div class="form-group">
-                        <label>Tarifa Developer ($/hora)</label>
-                        <input type="number" id="devRate" value="50" onchange="updatePersonalCosts()">
+                    <div>
+                        <label for="buffer">Margen de imprevistos: <span id="bufferVal"></span></label>
+                        <input type="range" id="buffer" min="0" max="50" step="5">
                     </div>
                 </div>
-                <div class="cost-display" id="personalCost">Costo Personal: $0/mes</div>
             </div>
 
             <!-- Resumen -->
             <div class="summary">
-                <h2>💰 Resumen de Costos</h2>
+                <h2>💰 Resumen de costos</h2>
                 <div class="summary-grid">
-                    <div class="summary-item">
-                        <h3>LLM Mensual</h3>
-                        <div class="value" id="totalLLM">$0</div>
-                    </div>
-                    <div class="summary-item">
-                        <h3>n8n + Infra Mensual</h3>
-                        <div class="value" id="totalInfra">$0</div>
-                    </div>
-                    <div class="summary-item">
-                        <h3>Personal Mensual</h3>
-                        <div class="value" id="totalPersonal">$0</div>
-                    </div>
-                    <div class="summary-item">
-                        <h3>Total Mensual</h3>
-                        <div class="value" id="totalMonthly">$0</div>
-                    </div>
-                    <div class="summary-item">
-                        <h3>Total Anual</h3>
-                        <div class="value" id="totalYearly">$0</div>
-                    </div>
+                    <div class="summary-item"><h3>LLM mensual</h3><div class="value" id="totalLLM"></div></div>
+                    <div class="summary-item"><h3>n8n + infra</h3><div class="value" id="totalInfra"></div></div>
+                    <div class="summary-item"><h3>Personal</h3><div class="value" id="totalPersonal"></div></div>
+                    <div class="summary-item"><h3>Imprevistos</h3><div class="value" id="totalBuffer"></div></div>
+                    <div class="summary-item big"><h3>Total mensual</h3><div class="value" id="totalMonthly"></div></div>
+                    <div class="summary-item big"><h3>Total anual (con crecimiento)</h3><div class="value" id="totalYearly"></div></div>
+                </div>
+                <div class="stack" id="stack"></div>
+                <div class="legend">
+                    <span><i style="background:var(--c-llm)"></i>LLM</span>
+                    <span><i style="background:var(--c-n8n)"></i>n8n + infra</span>
+                    <span><i style="background:var(--c-hr)"></i>Personal</span>
+                    <span><i style="background:var(--c-buf)"></i>Imprevistos</span>
+                </div>
+                <div class="unit-grid">
+                    <div class="summary-item"><h3>Costo LLM por solicitud</h3><div class="value" id="perReq"></div></div>
+                    <div class="summary-item"><h3>Costo LLM por 1.000 solicitudes</h3><div class="value" id="per1k"></div></div>
+                    <div class="summary-item"><h3>Tokens totales/mes</h3><div class="value" id="totTokens"></div></div>
                 </div>
             </div>
 
+            <div class="two-col">
+                <div class="section">
+                    <h2>📈 Proyección a 12 meses</h2>
+                    <div id="chart"></div>
+                </div>
+                <div class="section">
+                    <h2>💡 Oportunidades de ahorro</h2>
+                    <ul class="insights" id="insights"></ul>
+                </div>
+            </div>
+
+            <!-- Editor de precios -->
+            <details class="section">
+                <summary>🛠️ Editar tabla de precios (USD por 1M de tokens)</summary>
+                <p class="hint" style="margin-top:10px">Los precios cambian seguido. Si tu contrato o región tiene otra tarifa, editala acá y todo se recalcula.</p>
+                <button class="mini" id="resetPrices">Restaurar precios originales</button>
+                <div style="overflow-x:auto"><table class="prices" id="priceTable"></table></div>
+                <div class="sources">
+                    <b>Fuentes y fiabilidad.</b>
+                    <span class="tag oficial">oficial</span> Anthropic: <a href="https://platform.claude.com/docs/en/about-claude/pricing" target="_blank" rel="noopener">documentación de precios</a> (verificado). Desde Claude 4.6 no hay recargo por contexto largo; la caché de lectura cuesta 0,1× (Opus 5.5: 0,05×; Fable 5.1: 0,025×); Batch API −50%.<br>
+                    <span class="tag reportado">reportado</span> OpenAI y Google: tomados de agregadores de precios de terceros (sep 2026); confirmá en las páginas oficiales de cada proveedor antes de decidir.<br>
+                    <span class="tag legacy">sin verificar</span> Modelos antiguos / Mistral / Cohere: valores heredados de la versión anterior, pueden estar desactualizados.<br>
+                    n8n Cloud: Starter 2.500 ejec., Pro 10.000, Business 40.000 (precios reportados en €, tratados como USD); Enterprise a medida. Infraestructura self-hosted y mantenimiento son estimaciones propias. Los tokens de Claude 4.7+ usan un tokenizador que genera ~30 % más tokens para el mismo texto.
+                </div>
+            </details>
+
             <div class="export-section">
-                <button class="btn" onclick="exportToCSV()">📊 Exportar a CSV</button>
-                <button class="btn" onclick="printCalculation()">🖨️ Imprimir Reporte</button>
-                <button class="btn" onclick="resetCalculator()">🔄 Resetear</button>
+                <button class="btn" id="btnCsv">📊 Exportar CSV</button>
+                <button class="btn" id="btnLink">🔗 Copiar enlace</button>
+                <button class="btn" id="btnJson">💾 Guardar JSON</button>
+                <button class="btn ghost" id="btnLoad">📂 Cargar JSON</button>
+                <button class="btn ghost" id="btnPrint">🖨️ Imprimir</button>
+                <button class="btn ghost" id="btnReset">🔄 Resetear</button>
+                <input type="file" id="fileLoad" accept=".json" style="display:none">
             </div>
         </div>
     </div>
+    <div class="toast" id="toast"></div>
 
     <script>
-        // Datos de precios LLM
-        const llmPrices = {
-            'gpt-5.3': { input: 1.25, output: 10.00, name: 'GPT-5.3' },
-            'gpt-5': { input: 1.25, output: 10.00, name: 'GPT-5' },
-            'gpt-4o': { input: 2.50, output: 10.00, name: 'GPT-4o' },
-            'gpt-4o-mini': { input: 0.15, output: 0.60, name: 'GPT-4o Mini' },
-            'claude-4.6-opus': { input: 5.00, output: 25.00, name: 'Claude 4.6 Opus < 200K tokens' },
-            'claude-4.6-opus_200': { input: 10.00, output: 37.50, name: 'Claude 4.6 Opus > 200K tokens' },
-            'claude-4.6-sonnet': { input: 3.00, output: 15.00, name: 'Claude 4.6 Sonnet' },
-            'claude-3.5-haiku': { input: 0.80, output: 4, name: 'Claude 3.5 Haiku' },
-            'gemini-3-pro': { input: 2.00, output: 12.00, name: 'Gemini 3 Pro < 200K tokens' },
-            'gemini-3-pro_200': { input: 4.00, output: 18.00, name: 'Gemini 3 Pro > 200K tokens' },
-            'gemini-3-flash': { input: 0.50, output: 3.00, name: 'Gemini 3 Flash' },
-            'gemini-2.5-pro': { input: 1.25, output: 10.00, name: 'Gemini 2.5 Pro < 200K tokens' },
-            'gemini-2.5-pro_200': { input: 2.50, output: 15.00, name: 'Gemini 2.5 Pro > 200K tokens' },
-            'gemini-2.5-flash': { input: 0.30, output: 2.50, name: 'Gemini 2.5 Flash' },
-            'mistral-small': { input: 0.20, output: 0.60, name: 'Mistral Small' },
-            'mistral-large': { input: 2.00, output: 6.00, name: 'Mistral Large' },
-            'command-r': { input: 0.15, output: 0.60, name: 'Cohere Command R' },
-            'command-r-plus': { input: 3.00, output: 15.00, name: 'Cohere Command R+' }
+        // ---------- Datos ----------
+        // in/out: USD por 1M tokens · cm: multiplicador de lectura de caché · bm: multiplicador Batch
+        const M = (id, vendor, name, i, o, cm, bm, st) => ({ id, vendor, name, in: i, out: o, cm, bm, st });
+        const MODELS = [
+            M('fable-5.1', 'Anthropic', 'Claude Fable 5.1', 10, 50, 0.025, 0.5, 'oficial'),
+            M('opus-5.5', 'Anthropic', 'Claude Opus 5.5', 4, 20, 0.05, 0.5, 'oficial'),
+            M('opus-5', 'Anthropic', 'Claude Opus 5', 5, 25, 0.1, 0.5, 'oficial'),
+            M('opus-4.6', 'Anthropic', 'Claude Opus 4.6', 5, 25, 0.1, 0.5, 'oficial'),
+            M('sonnet-5.5', 'Anthropic', 'Claude Sonnet 5.5', 2, 10, 0.1, 0.5, 'oficial'),
+            M('sonnet-4.6', 'Anthropic', 'Claude Sonnet 4.6', 3, 15, 0.1, 0.5, 'oficial'),
+            M('haiku-4.5', 'Anthropic', 'Claude Haiku 4.5', 1, 5, 0.1, 0.5, 'oficial'),
+            M('gpt-5.5', 'OpenAI', 'GPT-5.5', 5, 30, 0.1, 0.5, 'reportado'),
+            M('gpt-5.4', 'OpenAI', 'GPT-5.4', 2.5, 15, 0.1, 0.5, 'reportado'),
+            M('gpt-5.4-mini', 'OpenAI', 'GPT-5.4 mini', 0.75, 4.5, 0.1, 0.5, 'reportado'),
+            M('gpt-5.4-nano', 'OpenAI', 'GPT-5.4 nano', 0.2, 1.25, 0.1, 0.5, 'reportado'),
+            M('gpt-5', 'OpenAI', 'GPT-5', 1.25, 10, 0.1, 0.5, 'reportado'),
+            M('gpt-4o', 'OpenAI', 'GPT-4o (antiguo)', 2.5, 10, 0.5, 0.5, 'legacy'),
+            M('gpt-4o-mini', 'OpenAI', 'GPT-4o mini (antiguo)', 0.15, 0.6, 0.5, 0.5, 'legacy'),
+            M('gem-3.1-pro', 'Google', 'Gemini 3.1 Pro ≤200K', 2, 12, 0.1, 0.5, 'reportado'),
+            M('gem-3.1-pro-200', 'Google', 'Gemini 3.1 Pro >200K', 4, 18, 0.1, 0.5, 'legacy'),
+            M('gem-3.5-flash', 'Google', 'Gemini 3.5 Flash', 1.5, 9, 0.1, 0.5, 'reportado'),
+            M('gem-3.1-flash-lite', 'Google', 'Gemini 3.1 Flash-Lite', 0.25, 1.5, 0.1, 0.5, 'reportado'),
+            M('gem-2.5-pro', 'Google', 'Gemini 2.5 Pro ≤200K', 1.25, 10, 0.1, 0.5, 'legacy'),
+            M('gem-2.5-pro-200', 'Google', 'Gemini 2.5 Pro >200K', 2.5, 15, 0.1, 0.5, 'legacy'),
+            M('gem-2.5-flash', 'Google', 'Gemini 2.5 Flash', 0.3, 2.5, 0.1, 0.5, 'reportado'),
+            M('mistral-small', 'Otros', 'Mistral Small', 0.2, 0.6, 1, 1, 'legacy'),
+            M('mistral-large', 'Otros', 'Mistral Large', 2, 6, 1, 1, 'legacy'),
+            M('command-r', 'Otros', 'Cohere Command R', 0.15, 0.6, 1, 1, 'legacy'),
+            M('command-r-plus', 'Otros', 'Cohere Command R+', 3, 15, 1, 1, 'legacy')
+        ];
+        const ORIG_PRICES = Object.fromEntries(MODELS.map(m => [m.id, { in: m.in, out: m.out }]));
+        const ST_LABEL = { oficial: 'oficial', reportado: 'reportado', legacy: 'sin verificar' };
+
+        const N8N_PLANS = {
+            'cloud-starter': { label: 'n8n Cloud – Starter', price: 24, limit: 2500, next: 'cloud-pro' },
+            'cloud-pro': { label: 'n8n Cloud – Pro', price: 60, limit: 10000, next: 'cloud-business' },
+            'cloud-business': { label: 'n8n Cloud – Business', price: 800, limit: 40000, next: 'cloud-enterprise' },
+            'cloud-enterprise': { label: 'n8n Cloud – Enterprise (a medida, mín. estimado)', price: 1500, limit: Infinity, next: null }
+        };
+        const ORIG_PLAN_PRICES = Object.fromEntries(Object.entries(N8N_PLANS).map(([k, v]) => [k, v.price]));
+        const SELF_TIERS = {
+            'self-basic': { label: 'Self-hosted – Básico (Community)', tier: 'basic', maint: 50, license: 0 },
+            'self-production': { label: 'Self-hosted – Producción (Community)', tier: 'production', maint: 150, license: 0 },
+            'self-enterprise': { label: 'Self-hosted – Enterprise (licencia Business)', tier: 'enterprise', maint: 500, license: 800 }
+        };
+        const INFRA = {
+            aws: { name: 'Amazon Web Services', basic: 99, production: 130, enterprise: 340 },
+            gcp: { name: 'Google Cloud Platform', basic: 81, production: 105, enterprise: 280 },
+            azure: { name: 'Microsoft Azure', basic: 92, production: 120, enterprise: 310 },
+            digitalocean: { name: 'DigitalOcean', basic: 54, production: 70, enterprise: 180 },
+            linode: { name: 'Linode (Akamai)', basic: 39, production: 55, enterprise: 150 }
         };
 
-        // Precios de infraestructura
-        const infraPrices = {
-            aws: { basic: 99, production: 130, enterprise: 340 },
-            gcp: { basic: 81, production: 105, enterprise: 280 },
-            azure: { basic: 92, production: 120, enterprise: 310 },
-            digitalocean: { basic: 54, production: 70, enterprise: 180 },
-            linode: { basic: 39, production: 55, enterprise: 150 }
-        };
+        const PRESETS = [
+            {
+                name: '💬 Chatbot de soporte', rows: [{ model: 'haiku-4.5', reqs: 20000, inTok: 1500, outTok: 400, cache: 60, batch: false }],
+                n8n: { type: 'cloud-pro', exec: 20000 }, hr: { devopsH: 0, devH: 5 }
+            },
+            {
+                name: '📚 RAG sobre documentos', rows: [{ model: 'sonnet-5.5', reqs: 5000, inTok: 6000, outTok: 600, cache: 30, batch: false }],
+                n8n: { type: 'cloud-starter', exec: 2000 }, hr: { devopsH: 0, devH: 8 }
+            },
+            {
+                name: '🏷️ Clasificación masiva (batch)', rows: [{ model: 'gem-3.1-flash-lite', reqs: 200000, inTok: 400, outTok: 30, cache: 0, batch: true }],
+                n8n: { type: 'self-basic', exec: 0, provider: 'digitalocean' }, hr: { devopsH: 3, devH: 4 }
+            },
+            {
+                name: '🤖 Agente complejo en n8n', rows: [
+                    { model: 'opus-5.5', reqs: 2000, inTok: 12000, outTok: 2500, cache: 70, batch: false },
+                    { model: 'haiku-4.5', reqs: 10000, inTok: 800, outTok: 100, cache: 50, batch: false }],
+                n8n: { type: 'self-production', exec: 0, provider: 'aws' }, hr: { devopsH: 8, devH: 20 }
+            },
+            {
+                name: '✍️ Generación de contenido', rows: [{ model: 'gpt-5.4-mini', reqs: 3000, inTok: 800, outTok: 1200, cache: 0, batch: false }],
+                n8n: { type: 'cloud-starter', exec: 2500 }, hr: { devopsH: 0, devH: 3 }
+            }
+        ];
 
-        let modelCounter = 0;
+        // ---------- Estado ----------
+        const KEY = 'llm-cost-calc-v2';
+        let state, rowSeq = 0, activePreset = -1;
+        const defaultState = () => ({
+            rows: [], n8n: { type: '', exec: 0, provider: '' },
+            hr: { devopsH: 0, devopsR: 60, devH: 0, devR: 50 },
+            growth: 5, buffer: 10, prices: {}, plans: {}
+        });
+        const $ = id => document.getElementById(id);
+        const modelOf = id => MODELS.find(m => m.id === id);
+        const price = id => Object.assign({}, ORIG_PRICES[id], state.prices[id] || {});
+        const planPrice = k => state.plans[k] ?? ORIG_PLAN_PRICES[k];
 
-        function createModelRow() {
-            const modelId = `model_${modelCounter++}`;
-            return `
-                <div class="model-row" id="${modelId}">
-                    <div class="form-group">
-                        <label>Modelo LLM</label>
-                        <select onchange="updateModelCost('${modelId}')">
-                            <option value="">Seleccionar modelo...</option>
-                            ${Object.entries(llmPrices).map(([key, model]) =>
-                `<option value="${key}">${model.name} ($${model.input}/$${model.output} per 1M tokens)</option>`
-            ).join('')}
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Tokens Input/mes (millones)</label>
-                        <input type="number" step="0.1" placeholder="0.5" onchange="updateModelCost('${modelId}')">
-                    </div>
-                    <div class="form-group">
-                        <label>Tokens Output/mes (millones)</label>
-                        <input type="number" step="0.1" placeholder="0.2" onchange="updateModelCost('${modelId}')">
-                    </div>
-                    <div class="form-group">
-                        <label>Habilitado</label>
-                        <button class="toggle-btn" onclick="toggleModel('${modelId}')" data-enabled="true">ACTIVO</button>
-                    </div>
-                    <div class="cost-display">$0/mes</div>
+        function fmt(n) {
+            if (n > 0 && n < 0.01) return '$' + n.toFixed(4);
+            return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        const fmtInt = n => Math.round(n).toLocaleString('en-US');
+        function fmtTok(n) {
+            if (n >= 1e9) return (n / 1e9).toFixed(2) + ' B';
+            if (n >= 1e6) return (n / 1e6).toFixed(2) + ' M';
+            if (n >= 1e3) return (n / 1e3).toFixed(1) + ' K';
+            return fmtInt(n);
+        }
+        function toast(msg) {
+            const t = $('toast'); t.textContent = msg; t.classList.add('show');
+            clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2200);
+        }
+
+        // ---------- Cálculo ----------
+        // Costo mensual de una fila con un modelo dado (precios ya incluyen ediciones del usuario)
+        function rowCost(row, modelId) {
+            const m = modelOf(modelId || row.model); if (!m) return 0;
+            const p = price(m.id);
+            const c = Math.min(Math.max(row.cache, 0), 100) / 100;
+            const inM = row.reqs * row.inTok / 1e6;
+            const outM = row.reqs * row.outTok / 1e6;
+            const inputCost = inM * p.in * ((1 - c) + c * m.cm);
+            let t = inputCost + outM * p.out;
+            if (row.batch) t *= m.bm;
+            return t;
+        }
+        function n8nCalc() {
+            const { type, exec, provider } = state.n8n;
+            const r = { n8n: 0, infra: 0, maint: 0, warn: '' };
+            if (N8N_PLANS[type]) {
+                // Se elige el plan y se avisa si las ejecuciones superan su límite (n8n obliga a subir de plan)
+                const p = N8N_PLANS[type]; r.n8n = planPrice(type);
+                if (exec > p.limit) {
+                    let k = type; while (N8N_PLANS[k].next && exec > N8N_PLANS[k].limit) k = N8N_PLANS[k].next;
+                    r.warn = `⚠️ ${fmtInt(exec)} ejecuciones superan el límite de ${fmtInt(p.limit)} de este plan. Necesitarías “${N8N_PLANS[k].label}” (${fmt(planPrice(k))}/mes).`;
+                }
+            } else if (SELF_TIERS[type] && INFRA[provider]) {
+                const s = SELF_TIERS[type];
+                r.n8n = s.license; r.infra = INFRA[provider][s.tier]; r.maint = s.maint;
+            } else if (SELF_TIERS[type]) r.warn = 'Elegí un proveedor de infraestructura.';
+            return r;
+        }
+        function calc() {
+            const rows = state.rows.map(r => ({ r, cost: r.on ? rowCost(r) : 0 }));
+            const llm = rows.reduce((a, x) => a + x.cost, 0);
+            const n = n8nCalc();
+            const infra = n.n8n + n.infra + n.maint;
+            const h = state.hr;
+            const people = h.devopsH * h.devopsR + h.devH * h.devR;
+            const base = llm + infra + people;
+            const buf = base * state.buffer / 100;
+            const monthly = base + buf;
+            const reqs = state.rows.filter(r => r.on).reduce((a, r) => a + r.reqs, 0);
+            const tokens = state.rows.filter(r => r.on).reduce((a, r) => a + r.reqs * (r.inTok + r.outTok), 0);
+            // Proyección: solo el uso LLM crece; el resto es fijo
+            const g = state.growth / 100, series = [];
+            let yearly = 0;
+            for (let i = 0; i < 12; i++) {
+                const v = (llm * Math.pow(1 + g, i) + infra + people) * (1 + state.buffer / 100);
+                series.push(v); yearly += v;
+            }
+            return { rows, llm, n, infra, people, buf, monthly, reqs, tokens, series, yearly };
+        }
+
+        // ---------- Render ----------
+        function modelOptions(sel) {
+            return ['Anthropic', 'OpenAI', 'Google', 'Otros'].map(v =>
+                `<optgroup label="${v}">` + MODELS.filter(m => m.vendor === v).map(m => {
+                    const p = price(m.id);
+                    return `<option value="${m.id}" ${m.id === sel ? 'selected' : ''}>${m.name} ($${p.in}/$${p.out})</option>`;
+                }).join('') + '</optgroup>').join('');
+        }
+        function renderRows() {
+            const box = $('llmModels'); box.innerHTML = '';
+            state.rows.forEach(r => {
+                const d = document.createElement('div');
+                d.className = 'model-row' + (r.on ? '' : ' off'); d.dataset.id = r.id;
+                d.innerHTML = `
+                <div class="model-top">
+                    <div><label>Modelo <span class="tag"></span></label><select data-f="model">${modelOptions(r.model)}</select></div>
+                    <div><label>Solicitudes / mes</label><input type="number" min="0" step="100" data-f="reqs" value="${r.reqs}"></div>
+                    <div><label>Tokens input / solicitud</label><input type="number" min="0" step="100" data-f="inTok" value="${r.inTok}"></div>
+                    <div><label>Tokens output / solicitud</label><input type="number" min="0" step="50" data-f="outTok" value="${r.outTok}"></div>
                 </div>
-            `;
-        }
-
-        function addModel() {
-            const container = document.getElementById('llmModels');
-            container.insertAdjacentHTML('beforeend', createModelRow());
-        }
-
-        function toggleModel(modelId) {
-            const row = document.getElementById(modelId);
-            const btn = row.querySelector('.toggle-btn');
-            const enabled = btn.dataset.enabled === 'true';
-
-            btn.dataset.enabled = !enabled;
-            btn.textContent = enabled ? 'INACTIVO' : 'ACTIVO';
-            btn.className = enabled ? 'toggle-btn disabled' : 'toggle-btn';
-
-            updateModelCost(modelId);
-            updateTotals();
-        }
-
-        function updateModelCost(modelId) {
-            const row = document.getElementById(modelId);
-            const select = row.querySelector('select');
-            const inputTokens = parseFloat(row.querySelectorAll('input')[0].value) || 0;
-            const outputTokens = parseFloat(row.querySelectorAll('input')[1].value) || 0;
-            const costDisplay = row.querySelector('.cost-display');
-            const enabled = row.querySelector('.toggle-btn').dataset.enabled === 'true';
-
-            if (!enabled || !select.value) {
-                costDisplay.textContent = '$0/mes';
-                updateTotals();
-                return;
-            }
-
-            const model = llmPrices[select.value];
-            if (model) {
-                const inputCost = inputTokens * model.input;
-                const outputCost = outputTokens * model.output;
-                const totalCost = inputCost + outputCost;
-                costDisplay.textContent = `$${totalCost.toFixed(2)}/mes`;
-            }
-
-            updateTotals();
-        }
-
-        function updateN8nCosts() {
-            const type = document.getElementById('n8nType').value;
-            const executions = parseInt(document.getElementById('executions').value) || 0;
-            const provider = document.getElementById('infraProvider').value;
-
-            const executionsGroup = document.getElementById('executionsGroup');
-            const infraGroup = document.getElementById('infraGroup');
-
-            let n8nCost = 0;
-            let infraCost = 0;
-            let maintenanceCost = 0;
-
-            if (type.startsWith('cloud')) {
-                executionsGroup.style.display = 'block';
-                infraGroup.style.display = 'none';
-
-                switch (type) {
-                    case 'cloud-starter':
-                        n8nCost = 24;
-                        if (executions > 2500) {
-                            n8nCost += Math.ceil((executions - 2500) / 1000) * 10;
-                        }
-                        break;
-                    case 'cloud-pro':
-                        n8nCost = 240;
-                        if (executions > 25000) {
-                            n8nCost += Math.ceil((executions - 25000) / 1000) * 8;
-                        }
-                        break;
-                    case 'cloud-enterprise':
-                        n8nCost = Math.max(500, executions * 0.005);
-                        break;
-                }
-            } else if (type.startsWith('self')) {
-                executionsGroup.style.display = 'none';
-                infraGroup.style.display = 'block';
-
-                if (provider && infraPrices[provider]) {
-                    const tier = type.split('-')[1];
-                    infraCost = infraPrices[provider][tier] || 0;
-
-                    // Costos de mantenimiento para self-hosted
-                    switch (tier) {
-                        case 'basic':
-                            maintenanceCost = 50;
-                            break;
-                        case 'production':
-                            maintenanceCost = 150;
-                            break;
-                        case 'enterprise':
-                            maintenanceCost = 500;
-                            break;
-                    }
-                }
-            }
-
-            document.getElementById('n8nCost').textContent = `Costo n8n: $${n8nCost}/mes`;
-            document.getElementById('infraCost').textContent = `Costo Infraestructura: $${infraCost}/mes`;
-            document.getElementById('maintenanceCost').textContent = `Mantenimiento: $${maintenanceCost}/mes`;
-
-            updateTotals();
-        }
-
-        function updatePersonalCosts() {
-            const devopsHours = parseInt(document.getElementById('devopsHours').value) || 0;
-            const devopsRate = parseInt(document.getElementById('devopsRate').value) || 0;
-            const devHours = parseInt(document.getElementById('devHours').value) || 0;
-            const devRate = parseInt(document.getElementById('devRate').value) || 0;
-
-            const personalCost = (devopsHours * devopsRate) + (devHours * devRate);
-            document.getElementById('personalCost').textContent = `Costo Personal: $${personalCost}/mes`;
-
-            updateTotals();
-        }
-
-        function updateTotals() {
-            // Calcular total LLM
-            let totalLLM = 0;
-            document.querySelectorAll('.model-row').forEach(row => {
-                const costText = row.querySelector('.cost-display').textContent;
-                const cost = parseFloat(costText.replace('$', '').replace('/mes', '')) || 0;
-                totalLLM += cost;
+                <div class="model-bottom">
+                    <div><label>Caché de prompt: <b data-o="cacheVal"></b></label><input type="range" min="0" max="95" step="5" data-f="cache" value="${r.cache}"></div>
+                    <label class="check"><input type="checkbox" data-f="batch" ${r.batch ? 'checked' : ''}> Batch API (−50 %)</label>
+                    <div class="cost-display" data-o="cost"></div>
+                    <div class="row-actions">
+                        <button class="mini" data-a="toggle">${r.on ? '⏸ Activo' : '▶ Inactivo'}</button>
+                        <button class="mini" data-a="dup" title="Duplicar">⧉</button>
+                        <button class="mini" data-a="del" title="Eliminar">🗑</button>
+                    </div>
+                </div>`;
+                box.appendChild(d);
             });
-
-            // Calcular total infraestructura
-            const n8nCostText = document.getElementById('n8nCost').textContent;
-            const infraCostText = document.getElementById('infraCost').textContent;
-            const maintenanceCostText = document.getElementById('maintenanceCost').textContent;
-
-            const n8nCost = parseFloat(n8nCostText.replace(/[^0-9.]/g, '')) || 0;
-            const infraCost = parseFloat(infraCostText.replace(/[^0-9.]/g, '')) || 0;
-            const maintenanceCost = parseFloat(maintenanceCostText.replace(/[^0-9.]/g, '')) || 0;
-
-            const totalInfra = n8nCost + infraCost + maintenanceCost;
-
-            // Calcular total personal
-            const personalCostText = document.getElementById('personalCost').textContent;
-            const totalPersonal = parseFloat(personalCostText.replace(/[^0-9.]/g, '')) || 0;
-
-            // Totales
-            const totalMonthly = totalLLM + totalInfra + totalPersonal;
-            const totalYearly = totalMonthly * 12;
-
-            // Actualizar display
-            document.getElementById('totalLLM').textContent = `$${totalLLM.toFixed(2)}`;
-            document.getElementById('totalInfra').textContent = `$${totalInfra.toFixed(2)}`;
-            document.getElementById('totalPersonal').textContent = `$${totalPersonal.toFixed(2)}`;
-            document.getElementById('totalMonthly').textContent = `$${totalMonthly.toFixed(2)}`;
-            document.getElementById('totalYearly').textContent = `$${totalYearly.toFixed(2)}`;
+            renderCmpSelect();
+            update();
+        }
+        function renderCmpSelect() {
+            const s = $('cmpRow'), cur = s.value;
+            s.innerHTML = state.rows.map((r, i) => `<option value="${r.id}">#${i + 1} ${modelOf(r.model).name}</option>`).join('');
+            if ([...s.options].some(o => o.value === cur)) s.value = cur;
+        }
+        function renderPrices() {
+            $('priceTable').innerHTML = '<tr><th>Modelo</th><th>Input $/1M</th><th>Output $/1M</th><th>Estado</th></tr>' +
+                MODELS.map(m => {
+                    const p = price(m.id);
+                    return `<tr><td>${m.name}</td>
+                    <td><input type="number" step="0.01" min="0" data-pid="${m.id}" data-pf="in" value="${p.in}"></td>
+                    <td><input type="number" step="0.01" min="0" data-pid="${m.id}" data-pf="out" value="${p.out}"></td>
+                    <td><span class="tag ${m.st}">${ST_LABEL[m.st]}</span></td></tr>`;
+                }).join('') +
+                '<tr><th colspan="4" style="padding-top:16px">Planes n8n Cloud ($/mes)</th></tr>' +
+                Object.entries(N8N_PLANS).map(([k, p]) =>
+                    `<tr><td>${p.label}</td><td><input type="number" min="0" data-plan="${k}" value="${planPrice(k)}"></td><td colspan="2">${p.limit === Infinity ? 'a medida' : fmtInt(p.limit) + ' ejecuciones'}</td></tr>`).join('');
+        }
+        function renderN8nSelects() {
+            $('n8nType').innerHTML = '<option value="">Seleccionar...</option>' +
+                Object.entries(N8N_PLANS).map(([k, p]) => `<option value="${k}">${p.label} (${fmt(planPrice(k))}/mes)</option>`).join('') +
+                Object.entries(SELF_TIERS).map(([k, s]) => `<option value="${k}">${s.label}</option>`).join('');
+            $('infraProvider').innerHTML = '<option value="">Seleccionar...</option>' +
+                Object.entries(INFRA).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join('');
+        }
+        function renderPresets() {
+            $('presets').innerHTML = PRESETS.map((p, i) => `<button class="chip ${i === activePreset ? 'active' : ''}" data-p="${i}">${p.name}</button>`).join('');
         }
 
-        function exportToCSV() {
-            let csv = 'Categoría,Descripción,Costo Mensual,Costo Anual\n';
-
-            // Modelos LLM
-            document.querySelectorAll('.model-row').forEach(row => {
-                const select = row.querySelector('select');
-                const enabled = row.querySelector('.toggle-btn').dataset.enabled === 'true';
-                if (select.value && enabled) {
-                    const modelName = select.options[select.selectedIndex].text.split(' (')[0];
-                    const cost = parseFloat(row.querySelector('.cost-display').textContent.replace('$', '').replace('/mes', '')) || 0;
-                    csv += `LLM,${modelName},$${cost.toFixed(2)},$${(cost * 12).toFixed(2)}\n`;
-                }
+        function update(save = true) {
+            const c = calc();
+            // filas
+            c.rows.forEach(({ r, cost }) => {
+                const el = document.querySelector(`.model-row[data-id="${r.id}"]`); if (!el) return;
+                const m = modelOf(r.model);
+                el.classList.toggle('off', !r.on);
+                const tag = el.querySelector('.tag'); tag.className = 'tag ' + m.st; tag.textContent = ST_LABEL[m.st];
+                el.querySelector('[data-o=cacheVal]').textContent = r.cache + '%';
+                const tk = r.reqs * (r.inTok + r.outTok);
+                el.querySelector('[data-o=cost]').innerHTML = `${fmt(cost)}/mes<small>${fmtTok(tk)} tokens · ${fmt(r.reqs ? cost / r.reqs : 0)}/solicitud</small>`;
             });
-
-            // n8n e infraestructura
-            const n8nType = document.getElementById('n8nType').options[document.getElementById('n8nType').selectedIndex]?.text || 'No seleccionado';
-            const n8nCost = parseFloat(document.getElementById('n8nCost').textContent.replace(/[^0-9.]/g, '')) || 0;
-            const infraCost = parseFloat(document.getElementById('infraCost').textContent.replace(/[^0-9.]/g, '')) || 0;
-            const maintenanceCost = parseFloat(document.getElementById('maintenanceCost').textContent.replace(/[^0-9.]/g, '')) || 0;
-
-            if (n8nCost > 0) csv += `n8n,${n8nType},$${n8nCost.toFixed(2)},$${(n8nCost * 12).toFixed(2)}\n`;
-            if (infraCost > 0) csv += `Infraestructura,Hosting,$${infraCost.toFixed(2)},$${(infraCost * 12).toFixed(2)}\n`;
-            if (maintenanceCost > 0) csv += `Mantenimiento,Personal,$${maintenanceCost.toFixed(2)},$${(maintenanceCost * 12).toFixed(2)}\n`;
-
-            // Personal
-            const personalCost = parseFloat(document.getElementById('personalCost').textContent.replace(/[^0-9.]/g, '')) || 0;
-            if (personalCost > 0) csv += `Personal,Desarrollo y Mantenimiento,$${personalCost.toFixed(2)},$${(personalCost * 12).toFixed(2)}\n`;
-
-            // Totales
-            const totalMonthly = parseFloat(document.getElementById('totalMonthly').textContent.replace('$', '')) || 0;
-            const totalYearly = parseFloat(document.getElementById('totalYearly').textContent.replace('$', '')) || 0;
-            csv += `\nTOTAL,Total General,$${totalMonthly.toFixed(2)},$${totalYearly.toFixed(2)}`;
-
-            // Descargar archivo
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `costos_llm_n8n_${new Date().toISOString().split('T')[0]}.csv`;
-            a.click();
-            window.URL.revokeObjectURL(url);
+            // n8n
+            $('execGroup').style.display = N8N_PLANS[state.n8n.type] ? '' : 'none';
+            $('infraGroup').style.display = SELF_TIERS[state.n8n.type] ? '' : 'none';
+            $('n8nCost').textContent = `Costo n8n: ${fmt(c.n.n8n)}/mes`;
+            $('infraCost').textContent = `Infraestructura: ${fmt(c.n.infra)}/mes`;
+            $('maintenanceCost').textContent = `Mantenimiento: ${fmt(c.n.maint)}/mes`;
+            $('n8nWarn').textContent = c.n.warn;
+            $('personalCost').textContent = `Costo personal: ${fmt(c.people)}/mes`;
+            $('growthVal').textContent = state.growth + '%'; $('bufferVal').textContent = state.buffer + '%';
+            // resumen
+            $('totalLLM').textContent = fmt(c.llm); $('totalInfra').textContent = fmt(c.infra);
+            $('totalPersonal').textContent = fmt(c.people); $('totalBuffer').textContent = fmt(c.buf);
+            $('totalMonthly').textContent = fmt(c.monthly); $('totalYearly').textContent = fmt(c.yearly);
+            $('perReq').textContent = c.reqs ? fmt(c.llm / c.reqs) : '—';
+            $('per1k').textContent = c.reqs ? fmt(c.llm / c.reqs * 1000) : '—';
+            $('totTokens').textContent = fmtTok(c.tokens);
+            const tot = c.monthly || 1;
+            $('stack').innerHTML = [['--c-llm', c.llm], ['--c-n8n', c.infra], ['--c-hr', c.people], ['--c-buf', c.buf]]
+                .map(([v, x]) => `<div style="width:${x / tot * 100}%;background:var(${v})" title="${fmt(x)}"></div>`).join('');
+            drawChart(c.series);
+            renderCmp(c);
+            renderInsights(c);
+            if (save) persist();
         }
 
-        function printCalculation() {
-            window.print();
-        }
-
-        function resetCalculator() {
-            if (confirm('¿Estás seguro de que quieres resetear todos los valores?')) {
-                document.getElementById('llmModels').innerHTML = '';
-                document.getElementById('n8nType').value = '';
-                document.getElementById('executions').value = '';
-                document.getElementById('infraProvider').value = '';
-                document.getElementById('devopsHours').value = '0';
-                document.getElementById('devopsRate').value = '60';
-                document.getElementById('devHours').value = '0';
-                document.getElementById('devRate').value = '50';
-
-                document.getElementById('executionsGroup').style.display = 'none';
-                document.getElementById('infraGroup').style.display = 'none';
-
-                modelCounter = 0;
-                updateN8nCosts();
-                updatePersonalCosts();
-                updateTotals();
-
-                addModel(); // Agregar un modelo por defecto
+        function drawChart(s) {
+            const W = 520, H = 240, L = 54, B = 28, T = 14, R = 12;
+            const max = Math.max(...s, 1) * 1.1, min = 0;
+            const x = i => L + i * (W - L - R) / 11, y = v => T + (H - T - B) * (1 - (v - min) / (max - min));
+            const pts = s.map((v, i) => `${x(i)},${y(v)}`).join(' ');
+            let g = '';
+            for (let k = 0; k <= 4; k++) {
+                const v = max * k / 4 / 1.1 * 1.1;
+                g += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="#e2e8f0"/><text x="${L - 6}" y="${y(v) + 4}" font-size="11" text-anchor="end" fill="#64748b">$${v >= 1000 ? (v / 1000).toFixed(1) + 'k' : Math.round(v)}</text>`;
             }
+            g += s.map((v, i) => `<text x="${x(i)}" y="${H - 8}" font-size="11" text-anchor="middle" fill="#64748b">M${i + 1}</text>`).join('');
+            g += `<polygon points="${L},${y(0)} ${pts} ${x(11)},${y(0)}" fill="rgba(79,172,254,.15)"/><polyline points="${pts}" fill="none" stroke="#4facfe" stroke-width="3"/>`;
+            g += s.map((v, i) => `<circle cx="${x(i)}" cy="${y(v)}" r="4" fill="#667eea"><title>Mes ${i + 1}: ${fmt(v)}</title></circle>`).join('');
+            $('chart').innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Proyección de costo mensual a 12 meses">${g}</svg>
+            <p class="hint" style="margin:8px 0 0">Mes 1: <b>${fmt(s[0])}</b> → Mes 12: <b>${fmt(s[11])}</b>. Pasá el cursor sobre los puntos para ver cada mes.</p>`;
         }
 
-        // Inicializar con un modelo por defecto
-        window.onload = function () {
-            addModel();
-            updatePersonalCosts();
+        function renderCmp(c) {
+            const list = $('cmpList');
+            const row = state.rows.find(r => r.id === $('cmpRow').value) || state.rows[0];
+            if (!row) { list.innerHTML = '<p class="hint">Agregá un modelo para comparar.</p>'; return; }
+            const vendor = $('cmpVendor').value;
+            const cur = rowCost(row);
+            const all = MODELS.filter(m => (!vendor || m.vendor === vendor) || m.id === row.model)
+                .map(m => ({ m, cost: rowCost(row, m.id) })).sort((a, b) => a.cost - b.cost);
+            const max = Math.max(...all.map(x => x.cost), 0.0001);
+            list.innerHTML = all.map(({ m, cost }) => {
+                const isCur = m.id === row.model;
+                const diff = cur ? (cost - cur) / cur * 100 : 0;
+                const d = isCur ? 'actual' : `<span class="delta ${diff <= 0 ? 'good' : 'bad'}">${diff > 0 ? '+' : ''}${diff.toFixed(0)}%</span>`;
+                return `<div class="cmp-row ${isCur ? 'current' : ''}">
+                    <span>${m.name} <span class="tag ${m.st}">${ST_LABEL[m.st]}</span></span>
+                    <div class="bar-wrap"><div class="bar" style="width:${cost / max * 100}%"></div></div>
+                    <span>${fmt(cost)}/mes</span>
+                    <span>${isCur ? d : `<button class="mini" data-use="${m.id}">Usar</button>`}</span>
+                </div>${isCur ? '' : ''}`;
+            }).join('');
+        }
+
+        function renderInsights(c) {
+            const out = [];
+            const active = state.rows.filter(r => r.on && r.reqs > 0);
+            if (!active.length) out.push(['', 'Cargá al menos un modelo con solicitudes para ver recomendaciones.']);
+            active.forEach((r, idx) => {
+                const m = modelOf(r.model), cost = rowCost(r), nm = `${m.name}`;
+                if (!cost) return;
+                if (r.cache < 50 && r.inTok >= 1000 && m.cm < 1) {
+                    const s = cost - rowCost({ ...r, cache: 70 });
+                    if (s > 0.01) out.push(['tip', `<b>Activá caché de prompt en ${nm}:</b> con un 70 % de aciertos ahorrarías ~<b>${fmt(s)}/mes</b> (la lectura cuesta ${(m.cm * 100).toFixed(m.cm < 0.1 ? 1 : 0)} % del input). Funciona mejor con system prompts y contexto repetido.`]);
+                }
+                if (!r.batch && m.bm < 1) {
+                    const s = cost - rowCost({ ...r, batch: true });
+                    if (s > 0.01) out.push(['tip', `<b>¿Procesos no urgentes en ${nm}?</b> La Batch API da −50 %: hasta <b>${fmt(s)}/mes</b> menos si tolerás respuestas diferidas (hasta 24 h).`]);
+                }
+                const cheaper = MODELS.filter(x => x.id !== m.id && x.st !== 'legacy').map(x => ({ x, c: rowCost(r, x.id) }))
+                    .filter(z => z.c < cost * 0.6).sort((a, b) => b.x.name.localeCompare(a.x.name) || a.c - b.c);
+                if (cheaper.length) {
+                    const best = cheaper.sort((a, b) => a.c - b.c)[0];
+                    out.push(['', `<b>Modelo alternativo para ${nm}:</b> ${best.x.name} costaría ${fmt(best.c)}/mes (−${((1 - best.c / cost) * 100).toFixed(0)} %). Probalo con un piloto A/B de calidad antes de migrar. Tip: enrutá tareas simples a un modelo pequeño y dejá el grande para las difíciles.`]);
+                }
+                if (r.outTok > r.inTok * 1.5 && r.outTok > 500)
+                    out.push(['', `<b>Output largo en ${nm}:</b> los tokens de salida cuestan 4–6× más que los de entrada. Pedí respuestas concisas o formato estructurado (JSON corto) para bajar el costo.`]);
+            });
+            if (c.n.warn && c.n.warn.startsWith('⚠️')) out.unshift(['alert', c.n.warn]);
+            if (c.llm > 0 && c.people > c.llm * 3)
+                out.push(['alert', `<b>El personal pesa ${(c.people / c.monthly * 100).toFixed(0)} % del total.</b> Antes de optimizar tokens, revisá si automatizar el mantenimiento (monitoreo, despliegues) libera horas.`]);
+            if (SELF_TIERS[state.n8n.type] && N8N_PLANS['cloud-pro'] && c.n.infra + c.n.maint > planPrice('cloud-pro') * 2 && state.n8n.exec <= 10000)
+                out.push(['', `<b>¿Self-hosted vale la pena?</b> Infra + mantenimiento suman ${fmt(c.n.infra + c.n.maint)}/mes; n8n Cloud Pro cuesta ${fmt(planPrice('cloud-pro'))}/mes hasta 10.000 ejecuciones.`]);
+            $('insights').innerHTML = out.slice(0, 8).map(([cl, t]) => `<li class="${cl}">${t}</li>`).join('') ||
+                '<li class="tip">Tu configuración ya está bastante optimizada. 👌</li>';
+        }
+
+        // ---------- Estado / persistencia ----------
+        function newRow(o = {}) { return Object.assign({ id: 'r' + (++rowSeq), model: 'sonnet-5.5', reqs: 1000, inTok: 1000, outTok: 300, cache: 0, batch: false, on: true }, o); }
+        function applyPreset(i) {
+            const p = PRESETS[i]; activePreset = i;
+            state.rows = p.rows.map(r => newRow(r));
+            state.n8n = Object.assign({ type: '', exec: 0, provider: '' }, p.n8n);
+            state.hr.devopsH = p.hr.devopsH; state.hr.devH = p.hr.devH;
+            syncInputs(); renderPresets(); renderRows();
+        }
+        function syncInputs() {
+            $('n8nType').value = state.n8n.type; $('executions').value = state.n8n.exec || '';
+            $('infraProvider').value = state.n8n.provider || '';
+            ['devopsHours:devopsH', 'devopsRate:devopsR', 'devHours:devH', 'devRate:devR'].forEach(s => { const [id, k] = s.split(':'); $(id).value = state.hr[k]; });
+            $('growth').value = state.growth; $('buffer').value = state.buffer;
+        }
+        function persist() {
+            const json = JSON.stringify(state);
+            try { localStorage.setItem(KEY, json); } catch (e) { }
+            try { history.replaceState(null, '', '#' + btoa(unescape(encodeURIComponent(json)))); } catch (e) { }
+        }
+        function load(obj) {
+            state = Object.assign(defaultState(), obj);
+            state.rows = (obj.rows || []).map(r => newRow(r));
+            state.n8n = Object.assign({ type: '', exec: 0, provider: '' }, obj.n8n);
+            state.hr = Object.assign(defaultState().hr, obj.hr);
+        }
+        function init() {
+            let saved = null;
+            try { if (location.hash.length > 1) saved = JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(1))))); } catch (e) { }
+            if (!saved) { try { saved = JSON.parse(localStorage.getItem(KEY)); } catch (e) { } }
+            state = defaultState(); renderPresets();
+            if (saved && saved.rows) { load(saved); renderPrices(); renderN8nSelects(); syncInputs(); renderRows(); }
+            else { renderPrices(); renderN8nSelects(); applyPreset(0); }
+        }
+
+        // ---------- Eventos ----------
+        function rowOf(el) { const d = el.closest('.model-row'); return d && state.rows.find(r => r.id === d.dataset.id); }
+        $('llmModels').addEventListener('input', e => {
+            const r = rowOf(e.target), f = e.target.dataset.f; if (!r || !f) return;
+            r[f] = f === 'model' ? e.target.value : f === 'batch' ? e.target.checked : Math.max(0, parseFloat(e.target.value) || 0);
+            if (f === 'model') renderCmpSelect();
+            activePreset = -1; renderPresets(); update();
+        });
+        $('llmModels').addEventListener('click', e => {
+            const a = e.target.dataset.a; if (!a) return;
+            const r = rowOf(e.target), i = state.rows.indexOf(r);
+            if (a === 'toggle') r.on = !r.on;
+            if (a === 'dup') state.rows.splice(i + 1, 0, newRow({ ...r, id: undefined }));
+            if (a === 'del') state.rows.splice(i, 1);
+            renderRows();
+        });
+        $('addModel').onclick = () => { state.rows.push(newRow()); renderRows(); };
+        $('presets').addEventListener('click', e => { const p = e.target.dataset.p; if (p !== undefined) applyPreset(+p); });
+        $('cmpRow').onchange = () => update(false); $('cmpVendor').onchange = () => update(false);
+        $('cmpList').addEventListener('click', e => {
+            const id = e.target.dataset.use; if (!id) return;
+            const r = state.rows.find(x => x.id === $('cmpRow').value) || state.rows[0];
+            r.model = id; const keep = r.id; renderRows(); $('cmpRow').value = keep; update(); toast('Modelo cambiado a ' + modelOf(id).name);
+        });
+        $('n8nType').onchange = e => { state.n8n.type = e.target.value; update(); };
+        $('infraProvider').onchange = e => { state.n8n.provider = e.target.value; update(); };
+        $('executions').oninput = e => { state.n8n.exec = Math.max(0, parseInt(e.target.value) || 0); update(); };
+        $('syncExec').onclick = () => {
+            const t = state.rows.filter(r => r.on).reduce((a, r) => a + r.reqs, 0);
+            state.n8n.exec = t; $('executions').value = t; update(); toast('Ejecuciones = ' + fmtInt(t));
         };
+        [['devopsHours', 'devopsH'], ['devopsRate', 'devopsR'], ['devHours', 'devH'], ['devRate', 'devR']].forEach(([id, k]) =>
+            $(id).oninput = e => { state.hr[k] = Math.max(0, parseFloat(e.target.value) || 0); update(); });
+        $('growth').oninput = e => { state.growth = +e.target.value; update(); };
+        $('buffer').oninput = e => { state.buffer = +e.target.value; update(); };
+        $('priceTable').addEventListener('input', e => {
+            const t = e.target, v = Math.max(0, parseFloat(t.value) || 0);
+            if (t.dataset.pid) { (state.prices[t.dataset.pid] = state.prices[t.dataset.pid] || {})[t.dataset.pf] = v; }
+            else if (t.dataset.plan) state.plans[t.dataset.plan] = v;
+            update();
+        });
+        $('priceTable').addEventListener('change', () => { // refrescar etiquetas de precios en los selects
+            const keep = $('cmpRow').value, n = $('n8nType').value; renderN8nSelects(); $('n8nType').value = n; renderRows(); $('cmpRow').value = keep; update(false);
+        });
+        $('resetPrices').onclick = () => { state.prices = {}; state.plans = {}; renderPrices(); renderN8nSelects(); $('n8nType').value = state.n8n.type; renderRows(); toast('Precios restaurados'); };
+
+        function download(name, text, type) {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; a.click(); URL.revokeObjectURL(a.href);
+        }
+        const day = () => new Date().toISOString().slice(0, 10);
+        $('btnCsv').onclick = () => {
+            const c = calc(), q = s => `"${String(s).replace(/"/g, '""')}"`;
+            let csv = 'Categoría,Descripción,Solicitudes/mes,Tokens in/sol,Tokens out/sol,Caché %,Batch,Costo mensual,Costo anual\n';
+            c.rows.forEach(({ r, cost }) => { if (r.on) csv += `LLM,${q(modelOf(r.model).name)},${r.reqs},${r.inTok},${r.outTok},${r.cache},${r.batch ? 'sí' : 'no'},${cost.toFixed(2)},${(cost * 12).toFixed(2)}\n`; });
+            const line = (cat, d, v) => { if (v > 0) csv += `${cat},${q(d)},,,,,,${v.toFixed(2)},${(v * 12).toFixed(2)}\n`; };
+            const tsel = $('n8nType'); const tn = tsel.options[tsel.selectedIndex]?.text || '';
+            line('n8n', tn, c.n.n8n); line('Infraestructura', INFRA[state.n8n.provider]?.name || 'Hosting', c.n.infra);
+            line('Mantenimiento', 'Self-hosted', c.n.maint); line('Personal', 'DevOps + Developer', c.people);
+            line('Imprevistos', state.buffer + '%', c.buf);
+            csv += `\nTOTAL,"Total mensual",,,,,,${c.monthly.toFixed(2)},${(c.monthly * 12).toFixed(2)}\n`;
+            csv += `TOTAL,"Anual con crecimiento ${state.growth}%/mes en LLM",,,,,,,${c.yearly.toFixed(2)}\n`;
+            download(`costos_llm_n8n_${day()}.csv`, '﻿' + csv, 'text/csv;charset=utf-8'); toast('CSV descargado');
+        };
+        $('btnJson').onclick = () => { download(`calculadora_${day()}.json`, JSON.stringify(state, null, 2), 'application/json'); toast('Escenario guardado'); };
+        $('btnLoad').onclick = () => $('fileLoad').click();
+        $('fileLoad').onchange = e => {
+            const f = e.target.files[0]; if (!f) return;
+            f.text().then(t => { try { load(JSON.parse(t)); activePreset = -1; syncInputs(); renderPresets(); renderPrices(); renderN8nSelects(); syncInputs(); renderRows(); toast('Escenario cargado'); } catch (err) { toast('Archivo inválido'); } });
+            e.target.value = '';
+        };
+        $('btnLink').onclick = () => {
+            persist();
+            (navigator.clipboard ? navigator.clipboard.writeText(location.href) : Promise.reject()).then(() => toast('Enlace copiado: incluye tu configuración'), () => toast('Copiá la URL del navegador'));
+        };
+        $('btnPrint').onclick = () => window.print();
+        $('btnReset').onclick = () => {
+            if (!confirm('¿Resetear todos los valores?')) return;
+            state = defaultState(); try { localStorage.removeItem(KEY); } catch (e) { }
+            renderPrices(); renderN8nSelects(); applyPreset(0);
+        };
+
+        init();
     </script>
 </body>
 
