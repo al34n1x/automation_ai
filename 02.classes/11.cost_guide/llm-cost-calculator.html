@@ -5,167 +5,338 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora de Costos LLM y n8n</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
+        /* Layout: barra superior fija con el total; columna de entradas a la izquierda, panel de resultados fijo a la derecha.
+           Tema: consola de control oscura (azul tinta + señal turquesa), con variante clara. */
         :root {
-            --accent: #4facfe;
-            --accent2: #00c6d7;
-            --ink: #1a202c;
-            --muted: #64748b;
-            --line: #e2e8f0;
-            --bg: #f8fafc;
-            --good: #16a34a;
-            --warn: #d97706;
-            --bad: #dc2626;
-            --c-llm: #667eea;
-            --c-n8n: #4facfe;
-            --c-hr: #f59e0b;
-            --c-buf: #94a3b8;
+            --bg: #eef2f8;
+            --surface: #ffffff;
+            --surface-2: #f3f6fb;
+            --line: #d9e0ee;
+            --text: #0f1729;
+            --muted: #55627f;
+            --accent: #0b8f83;
+            --accent-ink: #ffffff;
+            --accent-soft: rgba(11, 143, 131, .12);
+            --c-llm: #3b6cf0;
+            --c-n8n: #0b8f83;
+            --c-hr: #d98a0b;
+            --c-buf: #8793ad;
+            --good: #138a4b;
+            --bad: #d13b3b;
+            --warn: #b96d00;
+            --glow: rgba(59, 108, 240, .10);
+            --shadow: 0 1px 2px rgba(15, 23, 41, .06), 0 8px 24px rgba(15, 23, 41, .06);
+            --f-display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+            --f-body: 'DM Sans', 'Segoe UI', system-ui, sans-serif;
+            --f-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
         }
 
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]) {
+                --bg: #080c16; --surface: #0f1524; --surface-2: #151c30; --line: #232c47;
+                --text: #e7ecf8; --muted: #8e9bbd; --accent: #2ee6d0; --accent-ink: #04201c;
+                --accent-soft: rgba(46, 230, 208, .12);
+                --c-llm: #6f97ff; --c-n8n: #2ee6d0; --c-hr: #ffb02e; --c-buf: #6b7797;
+                --good: #3ddc84; --bad: #ff6b6b; --warn: #ffb02e; --glow: rgba(111, 151, 255, .12);
+                --shadow: 0 1px 0 rgba(255, 255, 255, .03) inset, 0 10px 30px rgba(0, 0, 0, .35);
+                color-scheme: dark;
+            }
+        }
+
+        :root[data-theme="dark"] {
+            --bg: #080c16; --surface: #0f1524; --surface-2: #151c30; --line: #232c47;
+            --text: #e7ecf8; --muted: #8e9bbd; --accent: #2ee6d0; --accent-ink: #04201c;
+            --accent-soft: rgba(46, 230, 208, .12);
+            --c-llm: #6f97ff; --c-n8n: #2ee6d0; --c-hr: #ffb02e; --c-buf: #6b7797;
+            --good: #3ddc84; --bad: #ff6b6b; --warn: #ffb02e; --glow: rgba(111, 151, 255, .12);
+            --shadow: 0 1px 0 rgba(255, 255, 255, .03) inset, 0 10px 30px rgba(0, 0, 0, .35);
+            color-scheme: dark;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: var(--f-body); font-size: 15px; line-height: 1.5;
+            background: var(--bg); color: var(--text);
+            background-image: radial-gradient(900px 400px at 85% -10%, var(--glow), transparent 70%),
+                linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+            background-size: auto, 44px 44px, 44px 44px;
+            background-attachment: fixed;
             min-height: 100vh;
-            padding: 20px;
-            color: var(--ink);
         }
+        body::before { content: ''; position: fixed; inset: 0; background: var(--bg); opacity: .93; z-index: -1; }
+        h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; }
+        :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-        .container { max-width: 1400px; margin: 0 auto; background: #fff; border-radius: 20px; box-shadow: 0 25px 60px rgba(0, 0, 0, .15); overflow: hidden; }
-        .header { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: #fff; padding: 30px; text-align: center; }
-        .header h1 { font-size: 2.3em; margin-bottom: 8px; }
-        .header p { opacity: .95; }
-        .badge { display: inline-block; margin-top: 12px; padding: 5px 14px; border-radius: 20px; background: rgba(255, 255, 255, .25); font-size: 13px; }
-        .main-content { padding: 30px; }
+        /* barra superior */
+        .topbar { position: sticky; top: 0; z-index: 20; backdrop-filter: blur(14px); background: color-mix(in srgb, var(--bg) 80%, transparent); border-bottom: 1px solid var(--line); }
+        .topbar-in { max-width: 1320px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+        .brand { display: flex; align-items: center; gap: 12px; margin-right: auto; min-width: 0; }
+        .logo { width: 34px; height: 34px; border-radius: 9px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; flex: none; }
+        .brand h1 { font-size: 1.15rem; font-weight: 800; letter-spacing: -.01em; }
+        .brand small { display: block; color: var(--muted); font-size: 12px; }
+        .live { font-family: var(--f-mono); text-align: right; line-height: 1.1; }
+        .live span { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+        .live b { font-size: 1.25rem; color: var(--accent); font-variant-numeric: tabular-nums; }
+        .icon-btn { border: 1px solid var(--line); background: var(--surface); color: var(--text); width: 38px; height: 38px; border-radius: 10px; cursor: pointer; display: grid; place-items: center; }
+        .icon-btn:hover { border-color: var(--accent); }
 
-        .section { background: var(--bg); border: 2px solid var(--line); border-radius: 15px; padding: 25px; margin-bottom: 25px; transition: border-color .3s; }
-        .section:hover { border-color: var(--accent); }
-        .section h2 { font-size: 1.5em; margin-bottom: 18px; border-bottom: 3px solid var(--accent); padding-bottom: 8px; display: inline-block; }
-        .hint { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+        .wrap { max-width: 1320px; margin: 0 auto; padding: 24px; display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 24px; align-items: start; }
+        .col-in { display: grid; gap: 20px; min-width: 0; }
+        .rail { position: sticky; top: 76px; display: grid; gap: 20px; min-width: 0; max-height: calc(100vh - 92px); overflow-y: auto; scrollbar-width: thin; padding-right: 2px; }
+        .wide { grid-column: 1 / -1; display: grid; gap: 20px; min-width: 0; }
 
-        label { font-weight: 600; color: #2d3748; margin-bottom: 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; display: block; }
-        select, input[type=number] { width: 100%; padding: 10px 12px; border: 2px solid var(--line); border-radius: 10px; font-size: 15px; background: #fff; transition: all .2s; }
-        select:focus, input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79, 172, 254, .15); }
-        input[type=range] { width: 100%; accent-color: var(--accent); }
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-bottom: 18px; }
+        .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px; box-shadow: var(--shadow); min-width: 0; }
+        .panel-h { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px; flex-wrap: wrap; }
+        .eyebrow { font-family: var(--f-mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+        .panel h2 { font-size: 1.3rem; font-weight: 700; letter-spacing: -.01em; }
+        .hint { color: var(--muted); font-size: 13.5px; margin-bottom: 16px; max-width: 70ch; }
 
-        /* presets */
-        .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
-        .chip { border: 2px solid var(--line); background: #fff; padding: 7px 14px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all .2s; }
+        label { display: block; font-family: var(--f-mono); font-size: 10.5px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 6px; }
+        select, input[type=number] { width: 100%; height: 42px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; font: 500 14.5px var(--f-body); background: var(--surface-2); color: var(--text); transition: border-color .15s, box-shadow .15s; }
+        input[type=number] { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+        select:hover, input:hover { border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); }
+        select:focus, input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+        input[type=range] { width: 100%; accent-color: var(--accent); height: 24px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px; }
+
+        /* escenarios */
+        .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+        .chip { border: 1px solid var(--line); background: var(--surface-2); color: var(--text); padding: 8px 14px; border-radius: 999px; cursor: pointer; font: 600 13px var(--f-body); transition: all .15s; }
         .chip:hover { border-color: var(--accent); transform: translateY(-1px); }
-        .chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .chip.active { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 
-        /* model rows */
-        .model-row { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 14px; transition: all .2s; }
-        .model-row:hover { border-color: var(--accent); box-shadow: 0 5px 15px rgba(79, 172, 254, .12); }
+        /* filas de modelos */
+        .model-row { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 12px; transition: border-color .15s, opacity .15s; }
+        .model-row:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); }
         .model-row.off { opacity: .5; }
-        .model-top { display: grid; grid-template-columns: 2.4fr 1fr 1fr 1fr; gap: 14px; align-items: end; margin-bottom: 12px; }
-        .model-bottom { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1.3fr; gap: 14px; align-items: end; }
-        .cost-display { font-weight: 700; font-size: 16px; text-align: center; padding: 10px; background: #f1f5f9; border-radius: 8px; }
-        .cost-display small { display: block; font-weight: 400; color: var(--muted); font-size: 11px; }
-        .row-actions { display: flex; gap: 6px; justify-content: flex-end; }
-        .mini { border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 7px 10px; cursor: pointer; font-size: 13px; }
+        .model-top { align-items: end; display: grid; grid-template-columns: minmax(0, 2.2fr) repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 14px; }
+        .model-bottom { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1.2fr) auto; gap: 14px; align-items: end; }
+        .cost-display { font-family: var(--f-mono); font-weight: 700; font-size: 17px; text-align: right; padding: 8px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; font-variant-numeric: tabular-nums; }
+        .cost-display small { display: block; font-weight: 400; color: var(--muted); font-size: 10.5px; }
+        .row-actions { display: flex; gap: 6px; }
+        .mini { border: 1px solid var(--line); background: var(--surface); color: var(--text); border-radius: 8px; padding: 7px 10px; cursor: pointer; font: 500 12.5px var(--f-body); transition: border-color .15s; }
         .mini:hover { border-color: var(--accent); }
-        .check { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; padding: 10px 0; }
+        .check { display: flex; align-items: center; gap: 8px; height: 42px; cursor: pointer; font-family: var(--f-body); font-size: 13.5px; text-transform: none; letter-spacing: 0; color: var(--text); margin: 0; }
         .check input { width: 18px; height: 18px; accent-color: var(--accent); }
-        .tag { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; margin-left: 6px; }
-        .tag.oficial { background: #dcfce7; color: #166534; }
-        .tag.reportado { background: #fef3c7; color: #92400e; }
-        .tag.legacy { background: #fee2e2; color: #991b1b; }
+        .tag { font-family: var(--f-mono); font-size: 10px; padding: 2px 7px; border-radius: 6px; margin-left: 6px; text-transform: none; letter-spacing: 0; border: 1px solid transparent; }
+        .tag.oficial { color: var(--good); border-color: color-mix(in srgb, var(--good) 40%, transparent); background: color-mix(in srgb, var(--good) 12%, transparent); }
+        .tag.reportado { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, transparent); background: color-mix(in srgb, var(--warn) 12%, transparent); }
+        .tag.legacy { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 40%, transparent); background: color-mix(in srgb, var(--bad) 12%, transparent); }
 
-        .btn { background: linear-gradient(135deg, #4facfe 0%, #00c6d7 100%); color: #fff; padding: 11px 26px; border: none; border-radius: 25px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all .2s; margin: 6px; }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(79, 172, 254, .35); }
-        .btn.ghost { background: #fff; color: var(--ink); border: 2px solid var(--line); }
-        .btn.ghost:hover { border-color: var(--accent); box-shadow: none; }
+        .btn { background: var(--accent); color: var(--accent-ink); padding: 10px 20px; border: 1px solid var(--accent); border-radius: 10px; font: 700 14px var(--f-body); cursor: pointer; transition: all .15s; }
+        .btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+        .btn.ghost { background: var(--surface-2); color: var(--text); border-color: var(--line); }
+        .btn.ghost:hover { border-color: var(--accent); }
 
-        /* comparison */
-        .cmp-row { display: grid; grid-template-columns: 210px 1fr 130px 70px; gap: 12px; align-items: center; padding: 6px 0; font-size: 14px; border-bottom: 1px dashed var(--line); }
-        .cmp-row.current { background: #eff6ff; border-radius: 8px; padding: 6px 8px; font-weight: 700; }
-        .bar-wrap { background: #e2e8f0; border-radius: 6px; height: 14px; overflow: hidden; }
-        .bar { height: 100%; border-radius: 6px; background: linear-gradient(90deg, #4facfe, #667eea); transition: width .4s; }
-        .delta.good { color: var(--good); font-weight: 600; }
-        .delta.bad { color: var(--bad); font-weight: 600; }
+        /* comparador */
+        .cmp-row { display: grid; grid-template-columns: minmax(180px, 230px) minmax(0, 1fr) 110px 64px; gap: 14px; align-items: center; padding: 7px 10px; border-radius: 8px; font-size: 13.5px; }
+        .cmp-row:hover { background: var(--surface-2); }
+        .cmp-row.current { background: var(--accent-soft); font-weight: 600; outline: 1px solid color-mix(in srgb, var(--accent) 50%, transparent); }
+        .cmp-row > span:nth-child(3) { font-family: var(--f-mono); text-align: right; font-variant-numeric: tabular-nums; }
+        .bar-wrap { background: var(--surface-2); border-radius: 4px; height: 10px; overflow: hidden; }
+        .bar { height: 100%; border-radius: 4px; background: var(--c-llm); transition: width .35s; }
+        .cmp-row.current .bar { background: var(--accent); }
+        .delta { font-family: var(--f-mono); font-size: 12px; }
+        .delta.good { color: var(--good); } .delta.bad { color: var(--bad); }
 
-        .cost-box { padding: 12px; background: #fff; border: 1px solid var(--line); border-radius: 10px; text-align: center; font-weight: 600; }
-        .warn { color: var(--warn); font-size: 13px; margin-top: 6px; font-weight: 600; }
+        .cost-box { font-family: var(--f-mono); font-size: 13px; padding: 12px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; font-variant-numeric: tabular-nums; }
+        .warn { color: var(--warn); font-size: 13px; font-weight: 600; margin-top: 10px; }
+        .warn:empty { display: none; }
+        .sliders { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
+        label b, label span#growthVal, label span#bufferVal { color: var(--accent); }
 
-        /* summary */
-        .summary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border-radius: 15px; padding: 28px; margin-bottom: 25px; }
-        .summary h2 { font-size: 1.5em; border-bottom: 3px solid #fff; padding-bottom: 8px; display: inline-block; margin-bottom: 20px; }
-        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; }
-        .summary-item { background: rgba(255, 255, 255, .12); padding: 16px; border-radius: 10px; text-align: center; }
-        .summary-item h3 { font-size: 12px; opacity: .85; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
-        .summary-item .value { font-size: 1.7em; font-weight: 700; }
-        .summary-item.big { background: rgba(255, 255, 255, .25); }
-        .stack { display: flex; height: 26px; border-radius: 13px; overflow: hidden; margin: 22px 0 10px; background: rgba(255, 255, 255, .2); }
-        .stack div { transition: width .4s; }
-        .legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13px; }
-        .legend i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 6px; vertical-align: middle; }
-        .unit-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-top: 18px; }
+        /* panel de resultados */
+        .result { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px; box-shadow: var(--shadow); }
+        .result .eyebrow { display: block; margin-bottom: 4px; }
+        .total { font-family: var(--f-display); font-weight: 800; font-size: clamp(2.4rem, 5vw, 3.2rem); letter-spacing: -.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+        .total-sub { color: var(--muted); font-size: 13px; margin-top: 6px; }
+        .total-sub b { color: var(--text); font-family: var(--f-mono); font-weight: 500; }
+        .stack { display: flex; height: 12px; border-radius: 6px; overflow: hidden; margin: 18px 0 12px; background: var(--surface-2); gap: 2px; }
+        .stack div { transition: width .35s; min-width: 0; }
+        .breakdown { display: grid; gap: 6px; }
+        .breakdown div { display: flex; align-items: center; gap: 8px; font-size: 13.5px; }
+        .breakdown i { width: 9px; height: 9px; border-radius: 3px; flex: none; }
+        .breakdown span { margin-right: auto; }
+        .breakdown b { font-family: var(--f-mono); font-weight: 500; font-variant-numeric: tabular-nums; }
+        .units { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+        .units h3 { font: 500 10px var(--f-mono); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 4px; }
+        .units .value { font-family: var(--f-mono); font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 
-        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
-        .insights li { list-style: none; background: #fff; border-left: 4px solid var(--accent); padding: 10px 14px; border-radius: 8px; margin-bottom: 10px; font-size: 14px; line-height: 1.5; }
-        .insights li.tip { border-color: var(--good); }
-        .insights li.alert { border-color: var(--warn); }
-        svg text { font-family: inherit; }
+        svg text { font-family: var(--f-mono); }
+        .gl { stroke: var(--line); stroke-opacity: .7; stroke-dasharray: 2 4; } .gt { fill: var(--muted); } .ga { fill: var(--accent); fill-opacity: .10; }
+        .gp { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linejoin: round; }
+        .gd { fill: var(--surface); stroke: var(--accent); stroke-width: 2; } .gd.end { fill: var(--accent); }
+        .gv { fill: var(--text); font-size: 11px; font-weight: 700; }
+        .chart-note { color: var(--muted); font-size: 12.5px; margin-top: 8px; }
+        .chart-note b { font-family: var(--f-mono); color: var(--text); font-weight: 500; }
 
-        details.section summary { cursor: pointer; font-weight: 700; font-size: 1.2em; }
-        table.prices { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 14px; }
+        .insights { display: grid; gap: 8px; list-style: none; }
+        .insights li { background: var(--surface-2); border: 1px solid var(--line); border-left: 3px solid var(--c-llm); padding: 10px 12px; border-radius: 8px; font-size: 13.5px; line-height: 1.5; }
+        .insights li.tip { border-left-color: var(--good); }
+        .insights li.alert { border-left-color: var(--warn); }
+        .insights b { font-weight: 600; }
+
+        details.panel summary { cursor: pointer; font: 700 1.1rem var(--f-display); }
+        table.prices { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 14px; }
+        table.prices th { font: 500 10.5px var(--f-mono); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
         table.prices th, table.prices td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; }
-        table.prices input { padding: 6px 8px; width: 90px; }
-        .sources { font-size: 12px; color: var(--muted); line-height: 1.6; margin-top: 12px; }
+        table.prices input { height: 34px; width: 96px; }
+        .table-scroll { overflow-x: auto; }
+        .sources { font-size: 12.5px; color: var(--muted); line-height: 1.7; margin-top: 14px; max-width: 90ch; }
         .sources a { color: var(--accent); }
-        .export-section { text-align: center; padding-top: 10px; }
-        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1a202c; color: #fff; padding: 10px 22px; border-radius: 25px; opacity: 0; pointer-events: none; transition: opacity .3s; font-size: 14px; z-index: 10; }
-        .toast.show { opacity: 1; }
+        .actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
 
-        @media (max-width: 900px) {
-            .model-top, .model-bottom, .two-col { grid-template-columns: 1fr 1fr; }
-            .cmp-row { grid-template-columns: 1fr 90px 60px; }
+        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(8px); background: var(--text); color: var(--bg); padding: 10px 20px; border-radius: 10px; opacity: 0; pointer-events: none; transition: all .25s; font-size: 14px; z-index: 30; }
+        .toast.show { opacity: 1; transform: translateX(-50%); }
+
+        @media (max-width: 1080px) {
+            .wrap { grid-template-columns: minmax(0, 1fr); padding: 16px; }
+            .rail { position: static; max-height: none; overflow: visible; }
+        }
+        @media (max-width: 760px) {
+            .model-top, .model-bottom { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .model-top > :first-child { grid-column: 1 / -1; }
+            .cmp-row { grid-template-columns: minmax(0, 1fr) 96px 60px; }
             .cmp-row .bar-wrap { grid-column: 1 / -1; order: 5; }
+            .topbar-in { padding: 10px 16px; }
+            .brand small { display: none; }
         }
-        @media (max-width: 560px) {
-            .model-top, .model-bottom, .two-col { grid-template-columns: 1fr; }
-            .main-content { padding: 16px; }
-            .header h1 { font-size: 1.7em; }
+        @media (max-width: 480px) {
+            .model-top, .model-bottom { grid-template-columns: minmax(0, 1fr); }
+            .units { grid-template-columns: minmax(0, 1fr); }
+            .panel, .result { padding: 16px; }
         }
+        @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
         @media print {
-            body { background: #fff; padding: 0; }
-            .btn, .chips, .row-actions, .export-section, details, .mini { display: none !important; }
-            .container { box-shadow: none; }
+            body, body::before { background: #fff; }
+            .topbar, .chips, .row-actions, .actions, details, .mini, .icon-btn { display: none !important; }
+            .rail { position: static; max-height: none; }
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🚀 Calculadora de Costos LLM y n8n</h1>
-            <p>Estima, compara y optimiza el costo mensual de tu automatización con IA</p>
-            <span class="badge">💲 Precios revisados: septiembre 2026 · todos los precios son editables</span>
+    <header class="topbar">
+        <div class="topbar-in">
+            <div class="brand">
+                <div class="logo" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>
+                </div>
+                <div>
+                    <h1>Calculadora de Costos LLM y n8n</h1>
+                    <small>Precios revisados en septiembre 2026 · todos editables</small>
+                </div>
+            </div>
+            <div class="live" aria-live="polite"><span>Total mensual</span><b id="topTotal">$0.00</b></div>
+            <button class="icon-btn" id="themeBtn" type="button" aria-label="Cambiar tema claro u oscuro" title="Cambiar tema">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+            </button>
+        </div>
+    </header>
+
+    <main class="wrap">
+        <div class="col-in">
+            <section class="panel">
+                <div class="panel-h"><span class="eyebrow">Punto de partida</span><h2>Escenarios</h2></div>
+                <p class="hint">Elegí un caso típico para precargar la calculadora y ajustá los números a tu realidad.</p>
+                <div class="chips" id="presets"></div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-h"><span class="eyebrow">Consumo</span><h2>Modelos LLM</h2></div>
+                <p class="hint">Indicá cuántas solicitudes hacés por mes y cuántos tokens usa cada una (1 token ≈ 4 caracteres; 1.000 tokens ≈ 750 palabras). El costo se calcula en vivo.</p>
+                <div id="llmModels"></div>
+                <button class="btn" id="addModel" type="button">+ Agregar modelo</button>
+            </section>
+
+            <section class="panel">
+                <div class="panel-h"><span class="eyebrow">Automatización</span><h2>n8n</h2></div>
+                <div class="form-grid">
+                    <div>
+                        <label for="n8nType">Tipo de implementación</label>
+                        <select id="n8nType"></select>
+                    </div>
+                    <div id="execGroup">
+                        <label for="executions">Ejecuciones mensuales</label>
+                        <input type="number" id="executions" min="0" placeholder="ej: 10000">
+                        <button class="mini" id="syncExec" type="button" style="margin-top:8px">↙ Usar solicitudes LLM totales</button>
+                    </div>
+                    <div id="infraGroup">
+                        <label for="infraProvider">Proveedor de infraestructura</label>
+                        <select id="infraProvider"></select>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="cost-box" id="n8nCost"></div>
+                    <div class="cost-box" id="infraCost"></div>
+                    <div class="cost-box" id="maintenanceCost"></div>
+                </div>
+                <div class="warn" id="n8nWarn"></div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-h"><span class="eyebrow">Equipo</span><h2>Recursos humanos</h2></div>
+                <div class="form-grid">
+                    <div><label for="devopsHours">DevOps (horas/mes)</label><input type="number" id="devopsHours" min="0"></div>
+                    <div><label for="devopsRate">Tarifa DevOps ($/hora)</label><input type="number" id="devopsRate" min="0"></div>
+                    <div><label for="devHours">Developer (horas/mes)</label><input type="number" id="devHours" min="0"></div>
+                    <div><label for="devRate">Tarifa Developer ($/hora)</label><input type="number" id="devRate" min="0"></div>
+                </div>
+                <div class="cost-box" id="personalCost"></div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-h"><span class="eyebrow">Supuestos</span><h2>Crecimiento y margen</h2></div>
+                <div class="sliders">
+                    <div>
+                        <label for="growth">Crecimiento mensual del uso LLM: <span id="growthVal"></span></label>
+                        <input type="range" id="growth" min="0" max="30" step="1">
+                    </div>
+                    <div>
+                        <label for="buffer">Margen de imprevistos: <span id="bufferVal"></span></label>
+                        <input type="range" id="buffer" min="0" max="50" step="5">
+                    </div>
+                </div>
+            </section>
         </div>
 
-        <div class="main-content">
-            <!-- Escenarios -->
-            <div class="section">
-                <h2>🎯 Empezá con un escenario</h2>
-                <p class="hint">Elegí un caso típico para precargar la calculadora y luego ajustá los números a tu realidad.</p>
-                <div class="chips" id="presets"></div>
+        <aside class="rail" aria-label="Resultados">
+            <div class="result">
+                <span class="eyebrow">Total mensual</span>
+                <div class="total" id="totalMonthly">$0.00</div>
+                <div class="total-sub">Anual con crecimiento: <b id="totalYearly">$0.00</b></div>
+                <div class="stack" id="stack"></div>
+                <div class="breakdown">
+                    <div><i style="background:var(--c-llm)"></i><span>LLM</span><b id="totalLLM"></b></div>
+                    <div><i style="background:var(--c-n8n)"></i><span>n8n + infra</span><b id="totalInfra"></b></div>
+                    <div><i style="background:var(--c-hr)"></i><span>Personal</span><b id="totalPersonal"></b></div>
+                    <div><i style="background:var(--c-buf)"></i><span>Imprevistos</span><b id="totalBuffer"></b></div>
+                </div>
+                <div class="units">
+                    <div><h3>Por solicitud</h3><div class="value" id="perReq"></div></div>
+                    <div><h3>Por 1.000</h3><div class="value" id="per1k"></div></div>
+                    <div><h3>Tokens/mes</h3><div class="value" id="totTokens"></div></div>
+                </div>
             </div>
-
-            <!-- LLM -->
-            <div class="section">
-                <h2>📊 Modelos LLM</h2>
-                <p class="hint">Indicá cuántas solicitudes por mes hacés y cuántos tokens usa cada una (≈ 1 token = 4 caracteres; 1.000 tokens ≈ 750 palabras). El costo se calcula en vivo.</p>
-                <div id="llmModels"></div>
-                <button class="btn" id="addModel">+ Agregar modelo</button>
+            <div class="panel">
+                <div class="panel-h"><span class="eyebrow">Próximos 12 meses</span></div>
+                <div id="chart"></div>
             </div>
+            <div class="panel">
+                <div class="panel-h"><span class="eyebrow">Ahorro posible</span></div>
+                <ul class="insights" id="insights"></ul>
+            </div>
+        </aside>
 
-            <!-- Comparador -->
-            <div class="section">
-                <h2>⚖️ ¿Y si usaras otro modelo?</h2>
-                <p class="hint">Compara el mismo uso (solicitudes, tokens, caché y batch) de la fila elegida contra todos los modelos. Clic en “Usar” para cambiarlo.</p>
+        <div class="wide">
+            <section class="panel">
+                <div class="panel-h"><span class="eyebrow">Comparador</span><h2>¿Y si usaras otro modelo?</h2></div>
+                <p class="hint">Mismo uso (solicitudes, tokens, caché y batch) de la fila elegida contra todos los modelos. “Usar” cambia el modelo de esa fila.</p>
                 <div class="form-grid">
                     <div>
                         <label for="cmpRow">Fila a comparar</label>
@@ -180,124 +351,34 @@
                     </div>
                 </div>
                 <div id="cmpList"></div>
-            </div>
+            </section>
 
-            <!-- n8n -->
-            <div class="section">
-                <h2>⚙️ Configuración n8n</h2>
-                <div class="form-grid">
-                    <div>
-                        <label for="n8nType">Tipo de implementación</label>
-                        <select id="n8nType"></select>
-                    </div>
-                    <div id="execGroup">
-                        <label for="executions">Ejecuciones mensuales</label>
-                        <input type="number" id="executions" min="0" placeholder="ej: 10000">
-                        <button class="mini" id="syncExec" style="margin-top:6px">↙ Usar solicitudes LLM totales</button>
-                    </div>
-                    <div id="infraGroup">
-                        <label for="infraProvider">Proveedor de infraestructura</label>
-                        <select id="infraProvider"></select>
-                    </div>
-                </div>
-                <div class="form-grid">
-                    <div class="cost-box" id="n8nCost"></div>
-                    <div class="cost-box" id="infraCost"></div>
-                    <div class="cost-box" id="maintenanceCost"></div>
-                </div>
-                <div class="warn" id="n8nWarn"></div>
-            </div>
-
-            <!-- RRHH -->
-            <div class="section">
-                <h2>👥 Recursos humanos</h2>
-                <div class="form-grid">
-                    <div><label for="devopsHours">DevOps (horas/mes)</label><input type="number" id="devopsHours" min="0"></div>
-                    <div><label for="devopsRate">Tarifa DevOps ($/hora)</label><input type="number" id="devopsRate" min="0"></div>
-                    <div><label for="devHours">Developer (horas/mes)</label><input type="number" id="devHours" min="0"></div>
-                    <div><label for="devRate">Tarifa Developer ($/hora)</label><input type="number" id="devRate" min="0"></div>
-                </div>
-                <div class="cost-box" id="personalCost"></div>
-            </div>
-
-            <!-- Escenario -->
-            <div class="section">
-                <h2>🎚️ Crecimiento y margen</h2>
-                <div class="form-grid">
-                    <div>
-                        <label for="growth">Crecimiento mensual del uso LLM: <span id="growthVal"></span></label>
-                        <input type="range" id="growth" min="0" max="30" step="1">
-                    </div>
-                    <div>
-                        <label for="buffer">Margen de imprevistos: <span id="bufferVal"></span></label>
-                        <input type="range" id="buffer" min="0" max="50" step="5">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Resumen -->
-            <div class="summary">
-                <h2>💰 Resumen de costos</h2>
-                <div class="summary-grid">
-                    <div class="summary-item"><h3>LLM mensual</h3><div class="value" id="totalLLM"></div></div>
-                    <div class="summary-item"><h3>n8n + infra</h3><div class="value" id="totalInfra"></div></div>
-                    <div class="summary-item"><h3>Personal</h3><div class="value" id="totalPersonal"></div></div>
-                    <div class="summary-item"><h3>Imprevistos</h3><div class="value" id="totalBuffer"></div></div>
-                    <div class="summary-item big"><h3>Total mensual</h3><div class="value" id="totalMonthly"></div></div>
-                    <div class="summary-item big"><h3>Total anual (con crecimiento)</h3><div class="value" id="totalYearly"></div></div>
-                </div>
-                <div class="stack" id="stack"></div>
-                <div class="legend">
-                    <span><i style="background:var(--c-llm)"></i>LLM</span>
-                    <span><i style="background:var(--c-n8n)"></i>n8n + infra</span>
-                    <span><i style="background:var(--c-hr)"></i>Personal</span>
-                    <span><i style="background:var(--c-buf)"></i>Imprevistos</span>
-                </div>
-                <div class="unit-grid">
-                    <div class="summary-item"><h3>Costo LLM por solicitud</h3><div class="value" id="perReq"></div></div>
-                    <div class="summary-item"><h3>Costo LLM por 1.000 solicitudes</h3><div class="value" id="per1k"></div></div>
-                    <div class="summary-item"><h3>Tokens totales/mes</h3><div class="value" id="totTokens"></div></div>
-                </div>
-            </div>
-
-            <div class="two-col">
-                <div class="section">
-                    <h2>📈 Proyección a 12 meses</h2>
-                    <div id="chart"></div>
-                </div>
-                <div class="section">
-                    <h2>💡 Oportunidades de ahorro</h2>
-                    <ul class="insights" id="insights"></ul>
-                </div>
-            </div>
-
-            <!-- Editor de precios -->
-            <details class="section">
-                <summary>🛠️ Editar tabla de precios (USD por 1M de tokens)</summary>
+            <details class="panel">
+                <summary>Editar tabla de precios (USD por 1M de tokens)</summary>
                 <p class="hint" style="margin-top:10px">Los precios cambian seguido. Si tu contrato o región tiene otra tarifa, editala acá y todo se recalcula.</p>
-                <button class="mini" id="resetPrices">Restaurar precios originales</button>
-                <div style="overflow-x:auto"><table class="prices" id="priceTable"></table></div>
+                <button class="mini" id="resetPrices" type="button">Restaurar precios originales</button>
+                <div class="table-scroll"><table class="prices" id="priceTable"></table></div>
                 <div class="sources">
                     <b>Fuentes y fiabilidad.</b>
-                    <span class="tag oficial">oficial</span> Anthropic: <a href="https://platform.claude.com/docs/en/about-claude/pricing" target="_blank" rel="noopener">documentación de precios</a> (verificado). Desde Claude 4.6 no hay recargo por contexto largo; la caché de lectura cuesta 0,1× (Opus 5.5: 0,05×; Fable 5.1: 0,025×); Batch API −50%.<br>
-                    <span class="tag reportado">reportado</span> OpenAI y Google: tomados de agregadores de precios de terceros (sep 2026); confirmá en las páginas oficiales de cada proveedor antes de decidir.<br>
-                    <span class="tag legacy">sin verificar</span> Modelos antiguos / Mistral / Cohere: valores heredados de la versión anterior, pueden estar desactualizados.<br>
-                    n8n Cloud: Starter 2.500 ejec., Pro 10.000, Business 40.000 (precios reportados en €, tratados como USD); Enterprise a medida. Infraestructura self-hosted y mantenimiento son estimaciones propias. Los tokens de Claude 4.7+ usan un tokenizador que genera ~30 % más tokens para el mismo texto.
+                    <span class="tag oficial">oficial</span> Anthropic: <a href="https://platform.claude.com/docs/en/about-claude/pricing" target="_blank" rel="noopener">documentación de precios</a> (verificado). Desde Claude 4.6 no hay recargo por contexto largo; la lectura de caché cuesta 0,1× (Opus 5.5: 0,05×; Fable 5.1: 0,025×); Batch API −50 %.<br>
+                    <span class="tag reportado">reportado</span> OpenAI y Google: tomados de agregadores de precios de terceros (sep 2026); confirmá en las páginas oficiales antes de decidir.<br>
+                    <span class="tag legacy">sin verificar</span> Modelos antiguos, Mistral y Cohere: valores heredados de la versión anterior, pueden estar desactualizados.<br>
+                    n8n Cloud: Starter 2.500 ejecuciones, Pro 10.000, Business 40.000 (precios reportados en €, tratados como USD); Enterprise a medida. Infraestructura self-hosted y mantenimiento son estimaciones propias. Los tokens de Claude 4.7+ usan un tokenizador que genera ~30 % más tokens para el mismo texto.
                 </div>
             </details>
 
-            <div class="export-section">
-                <button class="btn" id="btnCsv">📊 Exportar CSV</button>
-                <button class="btn" id="btnLink">🔗 Copiar enlace</button>
-                <button class="btn" id="btnJson">💾 Guardar JSON</button>
-                <button class="btn ghost" id="btnLoad">📂 Cargar JSON</button>
-                <button class="btn ghost" id="btnPrint">🖨️ Imprimir</button>
-                <button class="btn ghost" id="btnReset">🔄 Resetear</button>
+            <div class="actions">
+                <button class="btn" id="btnCsv" type="button">Exportar CSV</button>
+                <button class="btn" id="btnLink" type="button">Copiar enlace</button>
+                <button class="btn" id="btnJson" type="button">Guardar JSON</button>
+                <button class="btn ghost" id="btnLoad" type="button">Cargar JSON</button>
+                <button class="btn ghost" id="btnPrint" type="button">Imprimir</button>
+                <button class="btn ghost" id="btnReset" type="button">Resetear</button>
                 <input type="file" id="fileLoad" accept=".json" style="display:none">
             </div>
         </div>
-    </div>
-    <div class="toast" id="toast"></div>
+    </main>
+    <div class="toast" id="toast" role="status"></div>
 
     <script>
         // ---------- Datos ----------
@@ -355,25 +436,25 @@
 
         const PRESETS = [
             {
-                name: '💬 Chatbot de soporte', rows: [{ model: 'haiku-4.5', reqs: 20000, inTok: 1500, outTok: 400, cache: 60, batch: false }],
+                name: 'Chatbot de soporte', rows: [{ model: 'haiku-4.5', reqs: 20000, inTok: 1500, outTok: 400, cache: 60, batch: false }],
                 n8n: { type: 'cloud-pro', exec: 20000 }, hr: { devopsH: 0, devH: 5 }
             },
             {
-                name: '📚 RAG sobre documentos', rows: [{ model: 'sonnet-5.5', reqs: 5000, inTok: 6000, outTok: 600, cache: 30, batch: false }],
+                name: 'RAG sobre documentos', rows: [{ model: 'sonnet-5.5', reqs: 5000, inTok: 6000, outTok: 600, cache: 30, batch: false }],
                 n8n: { type: 'cloud-starter', exec: 2000 }, hr: { devopsH: 0, devH: 8 }
             },
             {
-                name: '🏷️ Clasificación masiva (batch)', rows: [{ model: 'gem-3.1-flash-lite', reqs: 200000, inTok: 400, outTok: 30, cache: 0, batch: true }],
+                name: 'Clasificación masiva (batch)', rows: [{ model: 'gem-3.1-flash-lite', reqs: 200000, inTok: 400, outTok: 30, cache: 0, batch: true }],
                 n8n: { type: 'self-basic', exec: 0, provider: 'digitalocean' }, hr: { devopsH: 3, devH: 4 }
             },
             {
-                name: '🤖 Agente complejo en n8n', rows: [
+                name: 'Agente complejo en n8n', rows: [
                     { model: 'opus-5.5', reqs: 2000, inTok: 12000, outTok: 2500, cache: 70, batch: false },
                     { model: 'haiku-4.5', reqs: 10000, inTok: 800, outTok: 100, cache: 50, batch: false }],
                 n8n: { type: 'self-production', exec: 0, provider: 'aws' }, hr: { devopsH: 8, devH: 20 }
             },
             {
-                name: '✍️ Generación de contenido', rows: [{ model: 'gpt-5.4-mini', reqs: 3000, inTok: 800, outTok: 1200, cache: 0, batch: false }],
+                name: 'Generación de contenido', rows: [{ model: 'gpt-5.4-mini', reqs: 3000, inTok: 800, outTok: 1200, cache: 0, batch: false }],
                 n8n: { type: 'cloud-starter', exec: 2500 }, hr: { devopsH: 0, devH: 3 }
             }
         ];
@@ -480,10 +561,10 @@
                 </div>
                 <div class="model-bottom">
                     <div><label>Caché de prompt: <b data-o="cacheVal"></b></label><input type="range" min="0" max="95" step="5" data-f="cache" value="${r.cache}"></div>
-                    <label class="check"><input type="checkbox" data-f="batch" ${r.batch ? 'checked' : ''}> Batch API (−50 %)</label>
+                    <label class="check"><input type="checkbox" data-f="batch" ${r.batch ? 'checked' : ''}> Batch −50 %</label>
                     <div class="cost-display" data-o="cost"></div>
                     <div class="row-actions">
-                        <button class="mini" data-a="toggle">${r.on ? '⏸ Activo' : '▶ Inactivo'}</button>
+                        <button class="mini" data-a="toggle">${r.on ? 'Activo' : 'Inactivo'}</button>
                         <button class="mini" data-a="dup" title="Duplicar">⧉</button>
                         <button class="mini" data-a="del" title="Eliminar">🗑</button>
                     </div>
@@ -546,7 +627,92 @@
             // resumen
             $('totalLLM').textContent = fmt(c.llm); $('totalInfra').textContent = fmt(c.infra);
             $('totalPersonal').textContent = fmt(c.people); $('totalBuffer').textContent = fmt(c.buf);
-            $('totalMonthly').textContent = fmt(c.monthly); $('totalYearly').textContent = fmt(c.yearly);
+            $('totalMonthly').textContent = fmt(c.monthly); $('topTotal').textContent = fmt(c.monthly); $('totalYearly').textContent = fmt(c.yearly);
+            $('perReq').textContent = c.reqs ? fmt(c.llm / c.reqs) : '—';
+            $('per1k').textContent = c.reqs ? fmt(c.llm / c.reqs * 1000) : '—';
+            $('totTokens').textContent = fmtTok(c.tokens);
+            const tot = c.monthly || 1;
+            $('stack').innerHTML = [['--c-llm', c.llm], ['--c-n8n', c.infra], ['--c-hr', c.people], ['--c-buf', c.buf]]
+                .map(([v, x]) => `<div style="width:${x / tot * 100}%;background:var(${v})" title="${fmt(x)}"></div>`).join('');
+            drawChart(c.series);
+            renderCmp(c);
+            renderInsights(c);
+            if (save) persist();
+        }
+
+        function drawChart(s) {
+            const W = 380, H = 200, L = 46, B = 26, T = 22, R = 34;
+            const top = Math.max(...s, 1), max = top * 1.12;
+            const x = i => L + i * (W - L - R) / 11, y = v => T + (H - T - B) * (1 - v / max);
+            const pts = s.map((v, i) => `${x(i)},${y(v)}`).join(' ');
+            const short = v => '$' + (v >= 1000 ? (v / 1000).toFixed(1) + 'k' : Math.round(v));
+            let g = '';
+            for (let k = 0; k <= 3; k++) {
+                const v = max * k / 3;
+                g += `<line class="gl" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text class="gt" x="${L - 6}" y="${y(v) + 3}" font-size="10" text-anchor="end">${short(v)}</text>`;
+            }
+            g += s.map((v, i) => i % 2 === 0 || i === 11 ? `<text class="gt" x="${x(i)}" y="${H - 8}" font-size="10" text-anchor="middle">M${i + 1}</text>` : '').join('');
+            g += `<polygon class="ga" points="${L},${y(0)} ${pts} ${x(11)},${y(0)}"/><polyline class="gp" points="${pts}"/>`;
+            g += s.map((v, i) => `<circle class="gd${i === 0 || i === 11 ? ' end' : ''}" cx="${x(i)}" cy="${y(v)}" r="${i === 0 || i === 11 ? 4.5 : 3}"><title>Mes ${i + 1}: ${fmt(v)}</title></circle>`).join('');
+            g += `<text class="gv" x="${x(11)}" y="${y(s[11]) - 10}" font-size="11" text-anchor="end">${short(s[11])}</text>`;
+            $('chart').innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Proyección de costo mensual a 12 meses">${g}</svg>
+            <p class="chart-note">Mes 1: <b>${fmt(s[0])}</b> → Mes 12: <b>${fmt(s[11])}</b>. Pasá el cursor sobre los puntos para ver cada mes.</p>`;
+        }
+
+        function renderCmpSelect() {
+            const s = $('cmpRow'), cur = s.value;
+            s.innerHTML = state.rows.map((r, i) => `<option value="${r.id}">#${i + 1} ${modelOf(r.model).name}</option>`).join('');
+            if ([...s.options].some(o => o.value === cur)) s.value = cur;
+        }
+        function renderPrices() {
+            $('priceTable').innerHTML = '<tr><th>Modelo</th><th>Input $/1M</th><th>Output $/1M</th><th>Estado</th></tr>' +
+                MODELS.map(m => {
+                    const p = price(m.id);
+                    return `<tr><td>${m.name}</td>
+                    <td><input type="number" step="0.01" min="0" data-pid="${m.id}" data-pf="in" value="${p.in}"></td>
+                    <td><input type="number" step="0.01" min="0" data-pid="${m.id}" data-pf="out" value="${p.out}"></td>
+                    <td><span class="tag ${m.st}">${ST_LABEL[m.st]}</span></td></tr>`;
+                }).join('') +
+                '<tr><th colspan="4" style="padding-top:16px">Planes n8n Cloud ($/mes)</th></tr>' +
+                Object.entries(N8N_PLANS).map(([k, p]) =>
+                    `<tr><td>${p.label}</td><td><input type="number" min="0" data-plan="${k}" value="${planPrice(k)}"></td><td colspan="2">${p.limit === Infinity ? 'a medida' : fmtInt(p.limit) + ' ejecuciones'}</td></tr>`).join('');
+        }
+        function renderN8nSelects() {
+            $('n8nType').innerHTML = '<option value="">Seleccionar...</option>' +
+                Object.entries(N8N_PLANS).map(([k, p]) => `<option value="${k}">${p.label} (${fmt(planPrice(k))}/mes)</option>`).join('') +
+                Object.entries(SELF_TIERS).map(([k, s]) => `<option value="${k}">${s.label}</option>`).join('');
+            $('infraProvider').innerHTML = '<option value="">Seleccionar...</option>' +
+                Object.entries(INFRA).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join('');
+        }
+        function renderPresets() {
+            $('presets').innerHTML = PRESETS.map((p, i) => `<button class="chip ${i === activePreset ? 'active' : ''}" data-p="${i}">${p.name}</button>`).join('');
+        }
+
+        function update(save = true) {
+            const c = calc();
+            // filas
+            c.rows.forEach(({ r, cost }) => {
+                const el = document.querySelector(`.model-row[data-id="${r.id}"]`); if (!el) return;
+                const m = modelOf(r.model);
+                el.classList.toggle('off', !r.on);
+                const tag = el.querySelector('.tag'); tag.className = 'tag ' + m.st; tag.textContent = ST_LABEL[m.st];
+                el.querySelector('[data-o=cacheVal]').textContent = r.cache + '%';
+                const tk = r.reqs * (r.inTok + r.outTok);
+                el.querySelector('[data-o=cost]').innerHTML = `${fmt(cost)}/mes<small>${fmtTok(tk)} tokens · ${fmt(r.reqs ? cost / r.reqs : 0)}/solicitud</small>`;
+            });
+            // n8n
+            $('execGroup').style.display = N8N_PLANS[state.n8n.type] ? '' : 'none';
+            $('infraGroup').style.display = SELF_TIERS[state.n8n.type] ? '' : 'none';
+            $('n8nCost').textContent = `Costo n8n: ${fmt(c.n.n8n)}/mes`;
+            $('infraCost').textContent = `Infraestructura: ${fmt(c.n.infra)}/mes`;
+            $('maintenanceCost').textContent = `Mantenimiento: ${fmt(c.n.maint)}/mes`;
+            $('n8nWarn').textContent = c.n.warn;
+            $('personalCost').textContent = `Costo personal: ${fmt(c.people)}/mes`;
+            $('growthVal').textContent = state.growth + '%'; $('bufferVal').textContent = state.buffer + '%';
+            // resumen
+            $('totalLLM').textContent = fmt(c.llm); $('totalInfra').textContent = fmt(c.infra);
+            $('totalPersonal').textContent = fmt(c.people); $('totalBuffer').textContent = fmt(c.buf);
+            $('totalMonthly').textContent = fmt(c.monthly); $('topTotal').textContent = fmt(c.monthly); $('totalYearly').textContent = fmt(c.yearly);
             $('perReq').textContent = c.reqs ? fmt(c.llm / c.reqs) : '—';
             $('per1k').textContent = c.reqs ? fmt(c.llm / c.reqs * 1000) : '—';
             $('totTokens').textContent = fmtTok(c.tokens);
@@ -747,6 +913,16 @@
             state = defaultState(); try { localStorage.removeItem(KEY); } catch (e) { }
             renderPrices(); renderN8nSelects(); applyPreset(0);
         };
+
+        // tema claro / oscuro
+        $('themeBtn').onclick = () => {
+            const dark = document.documentElement.dataset.theme
+                ? document.documentElement.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+            const next = dark ? 'light' : 'dark';
+            document.documentElement.dataset.theme = next;
+            try { localStorage.setItem(KEY + '-theme', next); } catch (e) { }
+        };
+        try { const t = localStorage.getItem(KEY + '-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) { }
 
         init();
     </script>
